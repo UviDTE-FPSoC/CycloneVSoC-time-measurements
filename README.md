@@ -5,31 +5,8 @@ This repository contains Processor-FPGA transfer rate measurements in CycloneV-S
 
 All numeric values for the paper *"Design Guidelines for Efficient Processor-FPGA Communication in FPSoC Devices"* are available in the file *"CycloneVSoC\_all\_measurements.xlsx"*. 
  
-If the paper bocomes accepted all time measurement programs will be uploaded into this repository.
+If the paper becomes accepted all time measurement programs will be uploaded into this repository.
 
-The following lines in this README file contain an explanation of the experiments and a summary of the most important  numeric values for easy consult in from the web.
+In order to serve as clarification, the following figure shows the different data paths used in the experiments.
 
-1. Cyclone V SoC architecture
------------------------------
-![alt text][logo]
-![alt text](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements//master/HF128_150MHz.png)
-
-[[figures/HF128_150MHz.png]]
-
-2. Experiments explanation
---------------------------
-
-3. All measurements in Board 1
------------------------------
-
-4. Plot HPS-FPGA128 Bridge @150MHz
-----------------------------------------
-
-[logo]:  "Cyclone V SoC Architecture"
-
-
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
+![alt text](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/raw/master/figures/Data_Paths.png)
