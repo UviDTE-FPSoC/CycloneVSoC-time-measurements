@@ -12,9 +12,9 @@ The following lines in this README file contain an explanation of the experiment
 1. Cyclone V SoC architecture
 -----------------------------
 ![alt text][logo]
-![alt text](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/figures/tree/master/HF128_150MHz.png)
+![alt text](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements//master/HF128_150MHz.png)
 
-
+[[figures/HF128_150MHz.pg]]
 
 2. Experiments explanation
 --------------------------
