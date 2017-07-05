@@ -14,7 +14,7 @@ The following lines in this README file contain an explanation of the experiment
 ![alt text][logo]
 ![alt text](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements//master/HF128_150MHz.png)
 
-[[figures/HF128_150MHz.pg]]
+[[figures/HF128_150MHz.png]]
 
 2. Experiments explanation
 --------------------------
