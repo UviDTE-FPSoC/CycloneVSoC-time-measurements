@@ -1,5 +1,5 @@
-Angstrom_HPS-to-FPGA_PL330DMAC
-==============================
+HPS-to-FPGA_PL330DMAC
+=====================
 
 Introduction
 -------------
@@ -30,7 +30,7 @@ Description of the code
 ------------------------
 First of all the application decides if the results will be printed on screen or in a file. In case the results should go to the screen the user has to call the program just typing the name. In case the user wants results to be printed in file the name of the file should be added as extra argument when calling the program.
 
-After that the PMU is initialized as a timer. PMU is the more precise way to measure time in Cyclone V SoC. Visit this [basic example](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Baremetal-applications/Second_counter_PMU) to learn more about it. It is initialized with a base frequency of 800 MHz (the frequency of the CPU configured in the FPGA hardware project) and freq divider = 1 so the measurement is most precise possible. After initialization empty measuremnts (measuring no code) are done to obtain the PMU measurement overhead. This overhead will be substracted to all measuremnts later on to obtain a more precise measurement. 
+After that the PMU is initialized as a timer. PMU is the more precise way to measure time in Cyclone V SoC. Visit this [basic example](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Baremetal-applications/Second_counter_PMU) to learn more about it. It is initialized with a base frequency of 800 MHz (the frequency of the CPU configured in the FPGA hardware project) and freq divider = 1 so the measurement is most precise possible. After initialization empty measuremnts (measuring no code) are done to obtain the PMU measurement overhead. This overhead will be substracted to all measuremnts later on to obtain a more precise measurement.
 
 After it the program generates a virtual address to access FPGA from application space, using mmap(). This is needed to check from the processor if the transfers done by the DMA driver [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) are being done in proper way. By default the address mapped is the position of the OCR hanging from HPS-FPGA bridge (the default in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K) too). If the hardware is changed and the memory is passed to Lightweight HPS-FPGA bridge the following macros must change:
 * HPS_FPGA_BRIDGE_BASE (start of the brige) from 0xC0000000 (beginning of HPS-FPGA) to 0xFF200000 (beginning of Lightweight HPS-FPGA).
@@ -40,7 +40,7 @@ This changes can be done automatically commenting the block of constants for HPS
 
 Afterwards the FPGA OCR is checked to ensure that the processor has access to all of it. If access is possible the FPGA OCR content is cleared (0s are written).
 
-After that the DMA driver [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) is configured using a sysfs entry in /sys/dma_pl330/ to select between ACP or no ACP and between preparing DMAC microcode before or during the transfer. All 4 combinations are tested. 
+After that the DMA driver [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) is configured using a sysfs entry in /sys/dma_pl330/ to select between ACP or no ACP and between preparing DMAC microcode before or during the transfer. All 4 combinations are tested.
 
 For each combination of DMA driver settings and each combination of data sizes, 100 measurements on writing the FPGA (WR) and reading the FPGA (RD) are done. In the case the FPGA OCR size (256KB) is smaller than transfer size (2B to 2MB) transfer are repeated until the total desired transfer size is completed (address of main memory keeps growing to see cache effects while address in FPGA is reset). When the 100 measuremnts are done, mean, max, min and variance is calculated and printed in scree or file.
 
@@ -61,7 +61,7 @@ This program was tested with Intel *FPGA SoC EDS v16.1*.
 
 The compilation process generates the executable file *time_measurments_DMA* in both cases.
 
-    
+
 How to test
 ------------
 * Configure MSEL pins:
@@ -69,14 +69,14 @@ How to test
     *  MSEL[5:0]="110010" position when FPGA will be configured from EPCQ device or Quartus programmer.
 * Switch on the board.
 * Compile the FPGA hardware ([FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K)) and load it in the FPGA:
-    *  If MSEL[5:0]="000000" FPGA is loaded by the U-boot during start-up. Check  the [tutorials to build a SD card with Operating System](https://github.com/robertofem/CycloneVSoC-examples/tree/master/SD-operating-system) to learn how to configure the SD card so the FPGA is loaded from it. 
+    *  If MSEL[5:0]="000000" FPGA is loaded by the U-boot during start-up. Check  the [tutorials to build a SD card with Operating System](https://github.com/robertofem/CycloneVSoC-examples/tree/master/SD-operating-system) to learn how to configure the SD card so the FPGA is loaded from it.
     *  If MSEL[5:0]="110010" use Quartus to load the FPGA:
         *  Connect the USB cable (just next to the power connector).
         *  Open Quartus programmer.
         *  Click Autodetect -> Mode JTAG -> Select 5CSEMA5 (for DE1-SoC and DE0-nano-SoC) if asked -> Right click in the line representing the FPGA -> Change FIle -> Select the .sof file for the project you want to load -> tick Program/Configure -> Click Start.
 
 * Connect the serial console port (the mini-USB port in DE1-SoC) to the computer and open a session with a Seral Terminal (like Putty) at 115200 bauds. Now you have access to the board OS console.
-* Copy the [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) module in the SD card and insert it into the kernel using _insmod_ command: 
+* Copy the [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) module in the SD card and insert it into the kernel using _insmod_ command:
 ```bash
   $ insmod DMA_PL330.ko
 ```

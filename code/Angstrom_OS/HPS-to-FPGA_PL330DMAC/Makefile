@@ -5,8 +5,8 @@ CROSS_COMPILE := ~/angstrom-socfpga/build/tmp-angstrom_v2013_12-eglibc/sysroots/
 #CROSS_COMPILE := arm-linux-gnueabihf-
 
 #Generate paths to files in the include folder
-STATISTICS_PATH = ../inc/Statistics
-PMU_PATH = ../inc/PMU
+STATISTICS_PATH = ../../inc/Statistics
+PMU_PATH = ../../inc/PMU
 CC = $(CROSS_COMPILE)gcc
 ARCH= arm
 LDFLAGS =  -g -Wall -I$(STATISTICS_PATH) -I$(PMU_PATH)
