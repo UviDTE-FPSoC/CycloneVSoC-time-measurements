@@ -1,20 +1,20 @@
 /******************************************************************************
 *
 * Copyright 2013 Altera Corporation. All Rights Reserved.
-* 
+*
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
-* 
+*
 * 1. Redistributions of source code must retain the above copyright notice,
 * this list of conditions and the following disclaimer.
-* 
+*
 * 2. Redistributions in binary form must reproduce the above copyright notice,
 * this list of conditions and the following disclaimer in the documentation
 * and/or other materials provided with the distribution.
-* 
+*
 * 3. The name of the author may not be used to endorse or promote products
 * derived from this software without specific prior written permission.
-* 
+*
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR
 * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED. IN NO
@@ -25,23 +25,23 @@
 * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 * OF SUCH DAMAGE.
-* 
+*
 ******************************************************************************/
 
 //---------MODIFICATIONS TO THE ORIGINAL ALT_DMA.C FROM ALTERA HW LIB--------//
 //
-//1. The fuction alt_dma_memory_to_memory_only_prepare_program() is added to the 
-//file. This function is the same as alt_dma_memory_to_memory without calling 
-//alt_dma_channel_exec in the last line of the function. This permits to separate 
+//1. The fuction alt_dma_memory_to_memory_only_prepare_program() is added to the
+//file. This function is the same as alt_dma_memory_to_memory without calling
+//alt_dma_channel_exec in the last line of the function. This permits to separate
 //preparation and execution of the DMA program, saving time in case the program
 //can be prepared before the transfer is to be done.
 //
-//-----------------------------------------------------------------------------// 
+//-----------------------------------------------------------------------------//
 
 
 #ifndef __ALT_DMA_H__
 #define __ALT_DMA_H__
-
+#define soc_cv_av 
 #include "hwlib.h"
 #include "alt_dma_common.h"
 #include "alt_dma_program.h"
@@ -282,9 +282,9 @@ ALT_DMA_EVENT_SELECT_t;
  */
 typedef enum ALT_DMA_PERIPH_MUX_e
 {
-    /*! 
+    /*!
      * Accept the reset default MUX selection
-     */ 
+     */
     ALT_DMA_PERIPH_MUX_DEFAULT = 0,
 
     /*!
@@ -491,7 +491,7 @@ ALT_STATUS_CODE alt_dma_channel_reg_get(ALT_DMA_CHANNEL_t channel,
  *  * 2.5.1, Issuing Instructions to the DMAC using a Slave Interface
  *  * 2.7, Using Events and Interrupts
  *
- * \param       evt_num   
+ * \param       evt_num
  *              A DMA event-interrupt resource. Allowable event values may be
  *              ALT_DMA_EVENT_0 .. ALT_DMA_EVENT_7 but ALT_DMA_EVENT_ABORT is
  *              not.
@@ -618,7 +618,7 @@ ALT_STATUS_CODE alt_dma_int_status_get(ALT_DMA_EVENT_t irq_num);
  * Clear the active (HIGH) status of the specified interrupt resource.
  *
  * If the specified interrupt is HIGH, then sets \b irq[N] to LOW if the
- * event-interrupt resource is configured (see: alt_dma_event_int_enable()) 
+ * event-interrupt resource is configured (see: alt_dma_event_int_enable())
  * to signal an interrupt. Otherwise, the status of \b irq[N] does not change.
  *
  * \param       irq_num
@@ -647,7 +647,7 @@ ALT_STATUS_CODE alt_dma_int_clear(ALT_DMA_EVENT_t irq_num);
  *
  * All DMA operations are asynchronous. The following are the ways to receive
  * notification of a DMA transfer complete operation:
- *  * Use alt_dma_channel_state_get() and poll for the 
+ *  * Use alt_dma_channel_state_get() and poll for the
  *    ALT_DMA_CHANNEL_STATE_STOPPED status.
  *  * In conjunction with the interrupt API, use DMA events to signal an
  *    interrupt. The event first must be configured to signal an interrupt
@@ -754,7 +754,7 @@ ALT_STATUS_CODE alt_dma_memory_to_memory(ALT_DMA_CHANNEL_t channel,
                                          size_t size,
                                          bool send_evt,
                                          ALT_DMA_EVENT_t evt);
-										 
+
 /** Same as alt_dma_memory_to_memory without calling alt_dma_channel_exec in the last line.
 ** permits to separate preparation and execution of the DMA program.
 **/
@@ -982,9 +982,9 @@ ALT_STATUS_CODE alt_dma_memory_to_periph(ALT_DMA_CHANNEL_t channel,
                                          size_t size,
                                          void * periph_info,
                                          bool send_evt,
-                                         ALT_DMA_EVENT_t evt);								 
-	
-	
+                                         ALT_DMA_EVENT_t evt);
+
+
 /*!
  * Uses the DMA engine to copy memory from the specified peripheral to the
  * given destination address. Because different peripheral has different

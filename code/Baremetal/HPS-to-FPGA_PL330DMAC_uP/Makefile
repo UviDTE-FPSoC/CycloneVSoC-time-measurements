@@ -5,7 +5,15 @@
 
 SOCEDS_ROOT ?= $(SOCEDS_DEST_ROOT)
 HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
-INC = ../inc
+
+CACHE_PATH = ../../inc/Cache
+STATISTICS_PATH = ../../inc/Statistics
+PMU_PATH = ../../inc/PMU
+ACP_PATH = ../../inc/ACP
+IO_PATH = ../../inc/Baremetal_IO
+FPGA_PATH = ../../inc/FPGA_system_headers
+
+INC = -I$(CACHE_PATH) -I$(STATISTICS_PATH) -I$(PMU_PATH) -I$(ACP_PATH) -I$(IO_PATH) -I$(FPGA_PATH)
 
 # look for SoC EDS 15.0 directory structure
 ifneq (,$(wildcard $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av/socal))
@@ -24,13 +32,13 @@ ifndef SOCAL_ROOT
 $(error SOCAL_ROOT is undefined)
 endif
 
-EXAMPLE_SRC := main.c io.c pmu.c main_functions.c arm_cache_modified.s alt_dma_modified.c alt_dma_program.c alt_address_space.c
+EXAMPLE_SRC := main.c $(IO_PATH)/io.c $(PMU_PATH)/pmu.c $(CACHE_PATH)/arm_cache_modified.s $(CACHE_PATH)/cache_high_level_API.c $(ACP_PATH)/acp_high_level_API.c $(STATISTICS_PATH)/statistics.c alt_dma_modified.c alt_dma_program.c alt_address_space.c
 C_SRC       := $(EXAMPLE_SRC)
 
 LINKER_SCRIPT := cycloneV-dk-ram-modified.ld
 
 MULTILIBFLAGS := -mcpu=cortex-a9 -mfloat-abi=softfp -mfpu=neon
-CFLAGS  := -g -O0 -Wall -Werror -std=c99 $(MULTILIBFLAGS) -I$(HWLIBS_ROOT)/include -I. -Imsgdma -Iqsys_headers -I$(SOCAL_ROOT) -I$(INC)
+CFLAGS  := -g -O0 -Wall -Werror -std=c99 $(MULTILIBFLAGS) -I$(HWLIBS_ROOT)/include -I. -Imsgdma -Iqsys_headers -I$(SOCAL_ROOT) $(INC)
 LDFLAGS := -T$(LINKER_SCRIPT) $(MULTILIBFLAGS)
 
 CROSS_COMPILE := arm-altera-eabi-
@@ -52,7 +60,7 @@ all: $(BIN)
 
 .PHONY: clean
 clean:
-	$(RM) $(ELF) $(OBJ) $(BIN)
+	$(RM) $(ELF) $(OBJ) $(BIN) $(BIN).img
 	$(RM) *.map
 	$(RM) *.objdump
 

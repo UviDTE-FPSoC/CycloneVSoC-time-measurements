@@ -30,9 +30,9 @@
 
 //---------MODIFICATIONS TO THE ORIGINAL ALT_DMA.C FROM ALTERA HW LIB--------//
 //
-//1. The fuction alt_dma_memory_to_memory_only_prepare_program() is added to the 
-//file. This function is the same as alt_dma_memory_to_memory without calling 
-//alt_dma_channel_exec in the last line of the function. This permits to separate 
+//1. The fuction alt_dma_memory_to_memory_only_prepare_program() is added to the
+//file. This function is the same as alt_dma_memory_to_memory without calling
+//alt_dma_channel_exec in the last line of the function. This permits to separate
 //preparation and execution of the DMA program, saving time in case the program
 //can be prepared before the transfer is to be done.
 //
@@ -41,14 +41,15 @@
 #define ALT_DMA_WC_ON 0x0E000000 //of CCR0 register of DMAC. It makes channel 0 of
 						//DMAC to do cacheable accesses to L3 with its AXI master
 //
-//3.Change macros in some functions.  
-// ALT_DMA_CCR_OPT_SC_DEFAULT was changed by ALT_DMA_RC_ON and 
-// ALT_DMA_CCR_OPT_DC_DEFAULT was changed by ALT_DMA_WC_ON in all places of 
-// alt_dma_memory_to_memory_segment() where they appeared. 
-// alt_dma_memory_to_memory_segment() is used inside 
+//3.Change macros in some functions.
+// ALT_DMA_CCR_OPT_SC_DEFAULT was changed by ALT_DMA_RC_ON and
+// ALT_DMA_CCR_OPT_DC_DEFAULT was changed by ALT_DMA_WC_ON in all places of
+// alt_dma_memory_to_memory_segment() where they appeared.
+// alt_dma_memory_to_memory_segment() is used inside
 // alt_dma_memory_to_memory_only_prepare_program() and inside
 // alt_dma_memory_to_memory() to prepare DMAC program in memory.
-//-----------------------------------------------------------------------------// 
+//-----------------------------------------------------------------------------//
+#define soc_cv_av 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -528,7 +529,7 @@ ALT_STATUS_CODE alt_dma_channel_exec(ALT_DMA_CHANNEL_t channel, ALT_DMA_PROGRAM_
         }
     }
 
-	
+
     // Validate the program
 
     if (status == ALT_E_SUCCESS)
@@ -1349,10 +1350,10 @@ ALT_STATUS_CODE alt_dma_memory_to_memory(ALT_DMA_CHANNEL_t channel,
     if (status == ALT_E_SUCCESS)
     {
         status = alt_dma_program_init(program);
-		
+
     }
 
-	
+
     if (size != 0)
     {
         dprintf("DMA[M->M]: dst  = %p.\n",   dst);
@@ -1536,10 +1537,10 @@ ALT_STATUS_CODE alt_dma_memory_to_memory_only_prepare_program(	ALT_DMA_CHANNEL_t
     if (status == ALT_E_SUCCESS)
     {
         status = alt_dma_program_init(program);
-		
+
     }
 
-	
+
     if (size != 0)
     {
         dprintf("DMA[M->M]: dst  = %p.\n",   dst);
@@ -3028,7 +3029,7 @@ static ALT_STATUS_CODE alt_dma_memory_to_i2c_common(ALT_DMA_PROGRAM_t * program,
     {
         status = alt_mmu_va_to_pa_coalesce_begin(&coalesce, src, size);
     }
-    
+
     while (size)
     {
         if (status != ALT_E_SUCCESS)

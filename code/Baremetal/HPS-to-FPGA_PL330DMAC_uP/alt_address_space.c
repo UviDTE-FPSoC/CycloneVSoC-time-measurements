@@ -1,49 +1,54 @@
 /******************************************************************************
- *
- * alt_address_space.c - API for the Altera SoC FPGA address space.
- *
- ******************************************************************************/
+*
+* Copyright 2013 Altera Corporation. All Rights Reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation
+* and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its contributors
+* may be used to endorse or promote products derived from this software without
+* specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+******************************************************************************/
 
-/******************************************************************************
- *
- * Copyright 2013 Altera Corporation. All Rights Reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * 
- * 3. The name of the author may not be used to endorse or promote products
- * derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
- * 
- ******************************************************************************/
+/*
+ * $Id: //acds/rel/16.1/embedded/ip/hps/altera_hps/hwlib/src/hwmgr/alt_address_space.c#1 $
+ */
+#define soc_cv_av
 
 #include <stddef.h>
 #include "alt_address_space.h"
-#include "socal/alt_l3.h"
 #include "socal/socal.h"
+#ifndef soc_a10
+#include "socal/alt_l3.h"
 #include "socal/alt_acpidmap.h"
+#endif
 #include "hwlib.h"
-
+#include "alt_l2_p310.h"
 
 #define ALT_ACP_ID_MAX_INPUT_ID     4095
 #define ALT_ACP_ID_MAX_OUTPUT_ID    7
+
+#ifndef soc_a10
 
 /******************************************************************************/
 ALT_STATUS_CODE alt_addr_space_remap(ALT_ADDR_SPACE_MPU_ATTR_t mpu_attr,
@@ -53,7 +58,7 @@ ALT_STATUS_CODE alt_addr_space_remap(ALT_ADDR_SPACE_MPU_ATTR_t mpu_attr,
 {
     uint32_t remap_reg_val = 0;
 
-    // Parameter checking and validation...
+    /* Parameter checking and validation... */
     if (mpu_attr == ALT_ADDR_SPACE_MPU_ZERO_AT_BOOTROM)
     {
         remap_reg_val |= ALT_L3_REMAP_MPUZERO_SET(ALT_L3_REMAP_MPUZERO_E_BOOTROM);
@@ -106,49 +111,54 @@ ALT_STATUS_CODE alt_addr_space_remap(ALT_ADDR_SPACE_MPU_ATTR_t mpu_attr,
         return ALT_E_INV_OPTION;
     }
 
-    // Perform the remap.
+    /* Perform the remap. */
     alt_write_word(ALT_L3_REMAP_ADDR, remap_reg_val);
 
     return ALT_E_SUCCESS;
 }
 
-/******************************************************************************/
-// Remap the MPU address space view of address 0 to access the SDRAM controller.
-// This is done by setting the L2 cache address filtering register start address
-// to 0 and leaving the address filtering address end address value
-// unmodified. This causes all physical addresses in the range
-// address_filter_start <= physical_address < address_filter_end to be directed
-// to the to the AXI Master Port M1 which is connected to the SDRAM
-// controller. All other addresses are directed to AXI Master Port M0 which
-// connect the MPU subsystem to the L3 interconnect.
-//
-// It is unnecessary to modify the MPU remap options in the L3 remap register
-// because those options only affect addresses in the MPU subsystem address
-// ranges that are now redirected to the SDRAM controller and never reach the L3
-// interconnect anyway.
+/*****************************************************************************
+ * Remap the MPU address space view of address 0 to access the SDRAM controller.
+ * This is done by setting the L2 cache address filtering register start address
+ * to 0 and leaving the address filtering address end address value
+ * unmodified. This causes all physical addresses in the range
+ * address_filter_start <= physical_address < address_filter_end to be directed
+ * to the to the AXI Master Port M1 which is connected to the SDRAM
+ * controller. All other addresses are directed to AXI Master Port M0 which
+ * connect the MPU subsystem to the L3 interconnect.
+ *
+ * It is unnecessary to modify the MPU remap options in the L3 remap register
+ * because those options only affect addresses in the MPU subsystem address
+ * ranges that are now redirected to the SDRAM controller and never reach the L3
+ * interconnect anyway.
+*****************************************************************************/
+
 ALT_STATUS_CODE alt_mpu_addr_space_remap_0_to_sdram(void)
 {
-    uint32_t addr_filt_end = (alt_read_word(L2_CACHE_ADDR_FILTERING_END_ADDR) &
-                              L2_CACHE_ADDR_FILTERING_END_ADDR_MASK);
+    uint32_t addr_filt_end = (alt_read_word(ALT_L2_CACHE_ADDR_FILTERING_END_ADDR) &
+                              ALT_L2_CACHE_ADDR_FILTERING_END_ADDR_MASK);
     return alt_l2_addr_filter_cfg_set(0x0, addr_filt_end);
 }
+#endif
 
-/******************************************************************************/
-// Return the L2 cache address filtering registers configuration settings in the
-// user provided start and end address range out parameters.
+
+/******************************************************************************
+ * Return the L2 cache address filtering registers configuration settings in the
+ * user provided start and end address range out parameters.
+******************************************************************************/
 ALT_STATUS_CODE alt_l2_addr_filter_cfg_get(uint32_t* addr_filt_start,
                                            uint32_t* addr_filt_end)
 {
+    uint32_t addr_filt_start_reg = alt_read_word(ALT_L2_CACHE_ADDR_FILTERING_START_ADDR);
+    uint32_t addr_filt_end_reg   = alt_read_word(ALT_L2_CACHE_ADDR_FILTERING_END_ADDR);
+
     if (addr_filt_start == NULL || addr_filt_end == NULL)
     {
         return ALT_E_BAD_ARG;
     }
 
-    uint32_t addr_filt_start_reg = alt_read_word(L2_CACHE_ADDR_FILTERING_START_ADDR);
-    uint32_t addr_filt_end_reg   = alt_read_word(L2_CACHE_ADDR_FILTERING_END_ADDR);
-
-    *addr_filt_start = (addr_filt_start_reg & L2_CACHE_ADDR_FILTERING_START_ADDR_MASK);
-    *addr_filt_end = (addr_filt_end_reg & L2_CACHE_ADDR_FILTERING_END_ADDR_MASK);
+    *addr_filt_start = (addr_filt_start_reg & ALT_L2_CACHE_ADDR_FILTERING_START_ADDR_MASK);
+    *addr_filt_end = (addr_filt_end_reg & ALT_L2_CACHE_ADDR_FILTERING_END_ADDR_MASK);
     return ALT_E_SUCCESS;
 }
 
@@ -156,34 +166,35 @@ ALT_STATUS_CODE alt_l2_addr_filter_cfg_get(uint32_t* addr_filt_start,
 ALT_STATUS_CODE alt_l2_addr_filter_cfg_set(uint32_t addr_filt_start,
                                            uint32_t addr_filt_end)
 {
-    // Address filtering start and end values must be 1 MB aligned.
-    if (  (addr_filt_start & ~L2_CACHE_ADDR_FILTERING_START_ADDR_MASK)
-       || (addr_filt_end   & ~L2_CACHE_ADDR_FILTERING_END_ADDR_MASK)  )
+    /* Address filtering start and end values must be 1 MB aligned. */
+    if (  (addr_filt_start & ~ALT_L2_CACHE_ADDR_FILTERING_START_ADDR_MASK)
+       || (addr_filt_end   & ~ALT_L2_CACHE_ADDR_FILTERING_END_ADDR_MASK)  )
     {
         return ALT_E_ARG_RANGE;
     }
 
-    // While it is possible to set the address filtering end value above its
-    // reset value and thereby access a larger SDRAM address range, it is not
-    // recommended. Doing so would potentially obscure any mapped HPS to FPGA
-    // bridge address spaces and peripherals on the L3 interconnect.
-    if (addr_filt_end > L2_CACHE_ADDR_FILTERING_END_RESET)
+    /* While it is possible to set the address filtering end value above its
+     * reset value and thereby access a larger SDRAM address range, it is not
+     * recommended. Doing so would potentially obscure any mapped HPS to FPGA
+     * bridge address spaces and peripherals on the L3 interconnect. */
+    if (addr_filt_end > ALT_L2_CACHE_ADDR_FILTERING_END_RESET)
     {
         return ALT_E_ARG_RANGE;
     }
 
-    // NOTE: ARM (ARM DDI 0246F CoreLink Level 2 Cache Controller L2C-310 TRM)
-    // recommends programming the Address Filtering End Register before the
-    // Address Filtering Start Register to avoid unpredictable behavior between
-    // the two writes.
-    alt_write_word(L2_CACHE_ADDR_FILTERING_END_ADDR, addr_filt_end);
-    // It is recommended that address filtering always remain enabled.
-    addr_filt_start |= L2_CACHE_ADDR_FILTERING_ENABLE_MASK;
-    alt_write_word(L2_CACHE_ADDR_FILTERING_START_ADDR, addr_filt_start);
+    /* NOTE: ARM (ARM DDI 0246F CoreLink Level 2 Cache Controller L2C-310 TRM)
+     * recommends programming the Address Filtering End Register before the
+     * Address Filtering Start Register to avoid unpredictable behavior between
+     * the two writes. */
+    alt_write_word(ALT_L2_CACHE_ADDR_FILTERING_END_ADDR, addr_filt_end);
+    /* It is recommended that address filtering always remain enabled. */
+    addr_filt_start |= ALT_L2_CACHE_ADDR_FILTERING_ENABLE_MASK;
+    alt_write_word(ALT_L2_CACHE_ADDR_FILTERING_START_ADDR, addr_filt_start);
 
     return ALT_E_SUCCESS;
 }
 
+#ifndef soc_a10
 /******************************************************************************/
 ALT_STATUS_CODE alt_acp_id_map_fixed_read_set(const uint32_t input_id,
                                               const uint32_t output_id,
@@ -298,12 +309,12 @@ ALT_STATUS_CODE alt_acp_id_map_fixed_write_set(const uint32_t input_id,
 /******************************************************************************/
 ALT_STATUS_CODE alt_acp_id_map_dynamic_read_set(const uint32_t output_id)
 {
+    uint32_t aruser, page;
+
     if (output_id > ALT_ACP_ID_MAX_OUTPUT_ID)
     {
         return ALT_E_BAD_ARG;
     }
-
-    uint32_t aruser, page;
 
     switch (output_id)
     {
@@ -340,12 +351,12 @@ ALT_STATUS_CODE alt_acp_id_map_dynamic_read_set(const uint32_t output_id)
 /******************************************************************************/
 ALT_STATUS_CODE alt_acp_id_map_dynamic_write_set(const uint32_t output_id)
 {
+    uint32_t awuser, page;
+
     if (output_id > ALT_ACP_ID_MAX_OUTPUT_ID)
     {
         return ALT_E_BAD_ARG;
     }
-
-    uint32_t awuser, page;
 
     switch (output_id)
     {
@@ -507,3 +518,5 @@ ALT_STATUS_CODE alt_acp_id_map_write_options_get(const uint32_t output_id,
 
     return ALT_E_SUCCESS;
 }
+
+#endif
