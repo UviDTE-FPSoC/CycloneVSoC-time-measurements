@@ -35,5 +35,8 @@
 
 //--High level function to configure cache with one single call--//
 void cache_configuration(int cache_config);
+//--Modify LOckdown behaviour of L2 controller--//
+void L2_lockdown_by_master(int CPU0_ways, int CPU1_ways, int ACP_ways,
+	int ACPidWR, int ACPidRD);
 
 #endif

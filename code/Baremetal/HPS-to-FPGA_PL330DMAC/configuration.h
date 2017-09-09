@@ -22,7 +22,7 @@ This file indicates where On-Chip RAM is connected:
 //define some variable types
 typedef uint32_t	uint32_soc;
 typedef uint64_t	uint64_soc;
-typedef uint64_t  	uint128_soc;
+typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 
 //define some macros depending on the situation
 #ifdef ON_CHIP_RAM_ON_LIGHTWEIGHT
@@ -113,6 +113,7 @@ typedef uint64_t  	uint128_soc;
 #define REP_TESTS 100 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
-//#define UP_FORLOOP //Uncomment if you want to measure transfers using for loop (direct method)
+//enables repetition of experiments with different lockdown cofigurations
+//#define EN_LOCKDOWN_STUDY
 
 #endif //__CONFIGURATION_H__

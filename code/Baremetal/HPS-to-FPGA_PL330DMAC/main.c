@@ -27,38 +27,22 @@ int __auto_semihosting;
 //Some functions to init and uninit DMA Controller
 ALT_STATUS_CODE PL330_DMAC_init(void);
 ALT_STATUS_CODE PL330_DMAC_uninit(void);
+ALT_STATUS_CODE PL330_DMAC_wait(ALT_DMA_CHANNEL_t Dma_Channel);
 
-//Declaration of the function and variables to print in file or screen
-int print_screen; //0 save results into file, 1 print results in screen
-FILE* f_print;//file to print the results in case file is selected
-void print(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    if(print_screen==1)
-    {
-      vprintf(str, args);
-    }
-    else
-    {
-      vfprintf(f_print, str, args);
-    }
-    va_end(args);
-}
-
-int main(int argc, char **argv)
+int main()
 {
-	print("-----MEASURING HPS-to_FPGA BRIDGES SPEED IN BAREMETAL----\n\r\r");
+	printf("-----MEASURING HPS-to_FPGA BRIDGES SPEED IN BAREMETAL----\n\r\r");
 	#ifdef ON_CHIP_RAM_ON_LIGHTWEIGHT
-		print("TESTING ON_CHIP_RAM_ON_LIGHTWEIGHT\n\r");
+		printf("TESTING ON_CHIP_RAM_ON_LIGHTWEIGHT\n\r");
 	#endif //ON_CHIP_RAM_ON_LIGHTWEIGHT
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE32
-		print("TESTING ON_CHIP_RAM_ON_HFBRIDGE32\n\r");
+		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE32\n\r");
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE32
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE64
-		print("TESTING ON_CHIP_RAM_ON_HFBRIDGE64\n\r");
+		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE64\n\r");
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE64
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE128
-		print("TESTING ON_CHIP_RAM_ON_HFBRIDGE128\n\r");
+		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE128\n\r");
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE128
 
 	//------------------------VARIABLES INSTANTIATION-----------------------//
@@ -110,10 +94,10 @@ int main(int argc, char **argv)
 	int hpsocr_size = 65536/4;//HPS OCR, size in bytes/4=size in 32-bit words
 
 	//----Save intermediate results in speed tests-------//
-	unsigned long long int total_clk, min_clk, max_clk, variance_clk, clk_read_average;
+	unsigned long long int total_clk, min_clk, max_clk, var_clk, clk_overhead;
 
-	unsigned long long int total_dma_rd, min_dma_rd, max_dma_rd, variance_dma_rd;
-	unsigned long long int total_dma_wr, min_dma_wr, max_dma_wr, variance_dma_wr;
+	unsigned long long int total_dma_rd, min_dma_rd, max_dma_rd, var_dma_rd;
+	unsigned long long int total_dma_wr, min_dma_wr, max_dma_wr, var_dma_wr;
 
 	//-----------auxiliar variables to perform speed tests-------//
 	char* data;
@@ -186,159 +170,198 @@ int main(int argc, char **argv)
 		return ALT_E_ERROR;
 	}
 
-	//---decide if the output should be saved in file or printed----//
-  if (argc == 2) //file name provided in call
-  {
-    f_print = fopen( argv[1],  "w" );
-    if( f_print  == NULL ) {
-      printf( "ERROR: could not open %s...\n" , argv[1]);
-      return( 1 );
-    }
-    printf("Results are saved in %s\n", argv[1]);
-    print_screen = 0;
-  }
-  else
-  {
-    print_screen = 1;
-  }
-
 	//-----------INITIALIZATION OF PMU AS TIMER------------//
-	print("\n\r");
+	printf("\n\r");
 	unsigned long long pmu_counter_ns;
 	int overflow = 0;
-	pmu_init_ns(800, 1); //Initialize PMU cycle counter, 800MHz source, frequency divider 1
+	pmu_init_ns(800, 1); //Init PMU cycle counter, 800MHz src, frequency divider 1
 	pmu_counter_enable();//Enable cycle counter inside PMU (it starts counting)
 	float pmu_res = pmu_getres_ns();
-	print("PMU is used like timer with the following characteristics\n\r");
-	print("PMU cycle counter resolution is %f ns\n\r", pmu_res );
-	print("Measuring PMU counter overhead...\n\r");
-	reset_cumulative(&total_clk, &min_clk, &max_clk, &variance_clk);
-	for(i = 0; i<CLK_REP_TESTS+2; i++)
+	printf("PMU is used like timer with the following characteristics\n\r");
+	printf("PMU cycle counter resolution is %f ns\n\r", pmu_res );
+	printf("Measuring PMU counter overhead...\n\r");
+	reset_cumulative(&total_clk, &min_clk, &max_clk, &var_clk);
+
+  for(i = 0; i<CLK_REP_TESTS+2; i++)
 	{
 		pmu_counter_reset();
 		overflow = pmu_counter_read_ns(&pmu_counter_ns);
 		//printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
-		if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");return 1;}
-		if (i>=2) update_cumulative(&total_clk, &min_clk, &max_clk, &variance_clk, 0, pmu_counter_ns, 0);
-		//(We erase two first measurements because they are different from the others. Reason:Branch prediction misses when entering for loop)
-	}
-	print("PMU Cycle Timer Statistics for %d consecutive reads\n\r", CLK_REP_TESTS);
-	print("Average, Minimum, Maximum, Variance\n\r");
-	print("%lld,%lld,%lld,%lld\n\r", clk_read_average = total_clk/CLK_REP_TESTS, min_clk, max_clk, variance (variance_clk , total_clk, CLK_REP_TESTS));
+		if (overflow == 1){
+      printf("Cycle counter overflow!! Program ended\n\r");
+      return 1;}
+		if (i>=2)
+      update_cumulative(&total_clk, &min_clk, &max_clk, &var_clk, 0,
+        pmu_counter_ns, 0);
+		//(We erase two first measurements because they are different from the
+    //others. Reason:Branch prediction misses when entering for loop)
+	 }
+	 printf("PMU Cycle Timer Stats for %d consecutive reads\n\r", CLK_REP_TESTS);
+	 printf("Average, Minimum, Maximum, Variance\n\r");
+	 printf("%lld,%lld,%lld,%lld\n\r", clk_overhead = total_clk/CLK_REP_TESTS,
+    min_clk, max_clk, variance (var_clk , total_clk, CLK_REP_TESTS));
 
-	//-----------MOVING DATA WITH DMAC------------//
-	print("\n\r--MOVING DATA WITH THE DMAC--\n\r");
+	 //-----------MOVING DATA WITH DMAC------------//
+	 printf("\n\r--MOVING DATA WITH THE DMAC--\n\r");
 
-	// Initialize DMA Controller
-    printf("INFO: Initializing DMA controller.\n\r");
-    status = PL330_DMAC_init();
-    if (status != ALT_E_SUCCESS)
-	{
-		printf("ERROR when initializing DMA Controller. Return\n\r");
-		return 1;
-	}
+	 // Initialize DMA Controller
+   printf("INFO: Initializing DMA controller.\n\r");
+   status = PL330_DMAC_init();
+   if (status != ALT_E_SUCCESS)
+	 {
+      printf("ERROR when initializing DMA Controller. Return\n\r");
+		  return 1;
+	  }
 
-	// Allocate DMA Channel
+	  // Allocate DMA Channel
     printf("INFO: Allocating DMA channel.\n\r");
     status = alt_dma_channel_alloc_any(&Dma_Channel);
     if (status != ALT_E_SUCCESS)
-	{
-		printf("ERROR allocating DMA channel. Return\n\r");
-		return 1;
-	}
+	  {
+		  printf("ERROR allocating DMA channel. Return\n\r");
+		  return 1;
+	  }
 
-	printf("Doing measurements....");
-	print("\n\r--PL330 DMAC tests (DMAC program preparation time included)--\n\r");
-	//Moving data with DMAC (DMAC program preparation is measured)
-	print("Data Size,Average DMA_WR,Minimum DMA_WR,Maximum DMA_WR,Variance DMA_WR,Average DMA_RD,Minimum DMA_RD,Maximum DMA_RD,Variance DMA_RD\n\r");
+	  printf("Doing measurements....\n\r");
+
+    //-----Modify lockdown in L2 cache controller--//
+    #ifdef EN_LOCKDOWN_STUDY
+    int h;
+    for (h=0; h<8; h++)
+    {
+      switch(h)
+      {
+      case 0:
+        printf("\n\rNO LOCKDOWN\n\r");
+        break;
+      case 1:
+        printf("\n\rLOCK CPUS 1 way\n\r");
+        L2_lockdown_by_master(0b00000001, 0b00000001, 0b00000000, 2, 3);
+        break;
+      case 2:
+        printf("\n\rLOCK CPUS 4 ways\n\r");
+        L2_lockdown_by_master(0b00001111, 0b00001111, 0b00000000, 2, 3);
+        break;
+      case 3:
+        printf("\n\rLOCK CPUS 7 ways\n\r");
+        L2_lockdown_by_master(0b01111111, 0b01111111, 0b00000000, 2, 3);
+      case 4:
+        printf("\n\rNO LOCKDOWN\n\r");
+        break;
+      case 5:
+        printf("\n\rLOCK CPUS 1 way and ACP the other 7 ways\n\r");
+        L2_lockdown_by_master(0b00000001, 0b00000001, 0b11111110, 2, 3);
+        break;
+      case 6:
+        printf("\n\rLOCK CPUS 4 ways and ACP the other 4 ways\n\r");
+        L2_lockdown_by_master(0b00001111, 0b00001111, 0b11110000, 2, 3);
+        break;
+      case 7:
+        printf("\n\rLOCK CPUS 7 ways and ACP the other way\n\r");
+        L2_lockdown_by_master(0b01111111, 0b01111111, 0b10000000, 2, 3);
+      default:
+        break;
+      }
+    #endif
+
+	  printf("\n\r--PL330 DMAC tests (DMAC uCode preparation time included)--\n\r");
+
+    //Moving data with DMAC (DMAC program preparation is measured)
+	  printf("Data Size,Average DMA_WR,Min DMA_WR,Max DMA_WR,Variance DMA_WR");
+    printf(",Average DMA_RD,Min DMA_RD,Max DMA_RD,Variance DMA_RD\n\r");
     for(i=0; i<number_of_data_sizes; i++)//for each data size
-	{
-		reset_cumulative( &total_dma_wr, &min_dma_wr, &max_dma_wr, &variance_dma_wr);
-		reset_cumulative( &total_dma_rd, &min_dma_rd, &max_dma_rd, &variance_dma_rd);
+	  {
+		  reset_cumulative( &total_dma_wr, &min_dma_wr, &max_dma_wr, &var_dma_wr);
+		  reset_cumulative( &total_dma_rd, &min_dma_rd, &max_dma_rd, &var_dma_rd);
 
+		  //if data is bigger than on-chip size in bytes
+		  if (data_size[i]>ON_CHIP_MEMORY_SPAN)
+		  {
+			  data_in_one_operation = ON_CHIP_MEMORY_SPAN;
+			  operation_loops = data_size[i]/ON_CHIP_MEMORY_SPAN;
+		  }
+		  else
+		  {
+			  data_in_one_operation = data_size[i];
+			  operation_loops = 1;
+		  }
 
-		//if data is bigger than on-chip size in bytes
-		if (data_size[i]>ON_CHIP_MEMORY_SPAN)
-		{
-			data_in_one_operation = ON_CHIP_MEMORY_SPAN;
-			operation_loops = data_size[i]/ON_CHIP_MEMORY_SPAN;
-		}
-		else
-		{
-			data_in_one_operation = data_size[i];
-			operation_loops = 1;
-		}
+		  for(l = 0; l<REP_TESTS+2; l++)
+		  {
+			  //reserve the exact memory of the data size
+			  data = (char*) malloc(data_size[i]);
+			  if (data == 0)
+			  {
+				  printf("ERROR when calling malloc: Out of memory\n\r");
+				  return 1;
+			  }
 
-		for(l = 0; l<REP_TESTS+2; l++)
-		{
-			//reserve the exact memory of the data size
-			data = (char*) malloc(data_size[i]);
-			if (data == 0)
-			{
-				printf("ERROR when calling malloc: Out of memory\n\r");
-				return 1;
-			}
+        //if data cache is on access through ACP to coherent data in cache
+			  if (cache_config >= 6)
+			  {
+				  wr_dst = (char*) FPGA_on_chip_RAM_addr;
+				  wr_src = (char*)((void*)(data)+0x80000000); //+0x80000000
+				  rd_dst = (char*)((void*)(data)+0x80000000); //to access through ACP
+				  rd_src = (char*) FPGA_on_chip_RAM_addr;
+			  }
+        //if data cache is off it does not make sense to access through ACP
+        //(it will be slower than direct access to sdram controller)
+			  else
+			  {
+				  wr_dst = (char*) FPGA_on_chip_RAM_addr;
+				  wr_src = data;
+				  rd_dst = data;
+				  rd_src = (char*) FPGA_on_chip_RAM_addr;
+			  }
 
-			if (cache_config >= 6) //if data cache is on access through ACP to coherent data in cache
-			{
-				wr_dst = (char*) FPGA_on_chip_RAM_addr;
-				wr_src = (char*)((void*)(data)+0x80000000); //+0x80000000 to access through ACP
-				rd_dst = (char*)((void*)(data)+0x80000000);
-				rd_src = (char*) FPGA_on_chip_RAM_addr;
-			}
-			else//if data cache is off it does not make sense to access through ACP (it will be slower than direct access to sdram controller)
-			{
-				wr_dst = (char*) FPGA_on_chip_RAM_addr;
-				wr_src = data;
-				rd_dst = data;
-				rd_src = (char*) FPGA_on_chip_RAM_addr;
-			}
+			  //save some content in data (for example: i)
+			  for (j=0; j<data_size[i]; j++) data[j] = i;
 
-			//save some content in data (for example: i)
-			for (j=0; j<data_size[i]; j++) data[j] = i;
+			  //--WRITE DATA TO FPGA ON-CHIP RAM
+			  pmu_counter_reset();
 
-			//--WRITE DATA TO FPGA ON-CHIP RAM
-			pmu_counter_reset();
+			  for (j=0; j<operation_loops; j++)
+			  {
+				  status = alt_dma_memory_to_memory(Dma_Channel, &program, wr_dst,
+					&(wr_src[j*ON_CHIP_MEMORY_SPAN]), data_in_one_operation, false,
+          (ALT_DMA_EVENT_t)0);
 
-			for (j=0; j<operation_loops; j++)
-			{
-				status = alt_dma_memory_to_memory(Dma_Channel, &program, wr_dst,
-					&(wr_src[j*ON_CHIP_MEMORY_SPAN]), data_in_one_operation, false, (ALT_DMA_EVENT_t)0);
-				//status = alt_dma_memory_to_memory(Dma_Channel, &program, dst, src, size, false, (ALT_DMA_EVENT_t)0);
-
-				// Wait for transfer to complete
-				if (status == ALT_E_SUCCESS)
-				{
-					//printf("INFO: Waiting for DMA transfer to complete.\n\r");
-					channel_state = ALT_DMA_CHANNEL_STATE_EXECUTING;
-					while((status == ALT_E_SUCCESS) && (channel_state != ALT_DMA_CHANNEL_STATE_STOPPED))
-					{
-						status = alt_dma_channel_state_get(Dma_Channel, &channel_state);
-						if(channel_state == ALT_DMA_CHANNEL_STATE_FAULTING)
-						{
-							alt_dma_channel_fault_status_get(Dma_Channel, &fault);
-							printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
-							return 1;
-						}
-					}
-				}
+				  // Wait for transfer to complete
+				  if (status == ALT_E_SUCCESS)
+				  {
+					  //printf("INFO: Waiting for DMA transfer to complete.\n\r");
+					  channel_state = ALT_DMA_CHANNEL_STATE_EXECUTING;
+					  while((status == ALT_E_SUCCESS) && (channel_state != ALT_DMA_CHANNEL_STATE_STOPPED))
+					  {
+						  status = alt_dma_channel_state_get(Dma_Channel, &channel_state);
+						  if(channel_state == ALT_DMA_CHANNEL_STATE_FAULTING)
+						  {
+							  alt_dma_channel_fault_status_get(Dma_Channel, &fault);
+							  printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
+							  return 1;
+						  }
+					  }
+				 }
 			}
 			overflow = pmu_counter_read_ns(&pmu_counter_ns);
-			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");return 1;}
+			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
+        return 1;}
 			//printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
 
-			if (l>=2) update_cumulative(&total_dma_wr, &min_dma_wr, &max_dma_wr, &variance_dma_wr, 0, pmu_counter_ns, clk_read_average);
-			//(We erase two first measurements because they are different from the others. Reason:Branch prediction misses when entering for loop)
+			if (l>=2) update_cumulative(&total_dma_wr, &min_dma_wr, &max_dma_wr,
+        &var_dma_wr, 0, pmu_counter_ns, clk_overhead);
+			//(We erase two first measurements because they are different from the
+      //others. Reason:Branch prediction misses when entering for loop)
 
 			//check the content of the data just read
 			// Compare results
-			//printf("INFO: Comparing source and destination buffers.\n\r");
 			if(0  != memcmp(&(data[0]), FPGA_on_chip_RAM_addr, data_in_one_operation))
 			{
-				printf("DMA source and destiny have different data on WR!! Program ended\n\r");return 1;
+				printf("DMA src and dst have different data on WR!! Program ended\n\r");
+        return 1;
 			}
-
-			//printf("%d: %lld, %lld, %lld, %lld, %lld\n\r",l, pmu_counter_ns-clk_read_average, total_dma_wr, min_dma_wr, max_dma_wr, variance_dma_wr);
+			//printf("%d: %lld, %lld, %lld, %lld, %lld\n\r",l, pmu_counter_ns-
+      //clk_overhead, total_dma_wr, min_dma_wr, max_dma_wr, var_dma_wr);
 
 
 			//--READ DATA FROM FPGA ON-CHIP RAM
@@ -346,9 +369,9 @@ int main(int argc, char **argv)
 
 			for (j=0; j<operation_loops; j++)
 			{
-				status = alt_dma_memory_to_memory(Dma_Channel, &program, &(rd_dst[j*ON_CHIP_MEMORY_SPAN]),
-					rd_src, data_in_one_operation, false, (ALT_DMA_EVENT_t)0);
-				//status = alt_dma_memory_to_memory(Dma_Channel, &program, dst, src, size, false, (ALT_DMA_EVENT_t)0);
+				status = alt_dma_memory_to_memory(Dma_Channel, &program,
+          &(rd_dst[j*ON_CHIP_MEMORY_SPAN]), rd_src, data_in_one_operation,
+          false, (ALT_DMA_EVENT_t)0);
 
 				// Wait for transfer to complete
 				if (status == ALT_E_SUCCESS)
@@ -369,34 +392,42 @@ int main(int argc, char **argv)
 			}
 
 			overflow = pmu_counter_read_ns(&pmu_counter_ns);
-			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");return 1;}
+			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
+        return 1;}
 
-			if (l>=2) update_cumulative(&total_dma_rd, &min_dma_rd, &max_dma_rd, &variance_dma_rd, 0, pmu_counter_ns, clk_read_average);
-			//(We erase two first measurements because they are different from the others. Reason:Branch prediction misses when entering for loop)
+			if (l>=2) update_cumulative(&total_dma_rd, &min_dma_rd, &max_dma_rd,
+        &var_dma_rd, 0, pmu_counter_ns, clk_overhead);
+			//(We erase two first measurements because they are different from the
+      //others. Reason:Branch prediction misses when entering for loop)
 
 			//check the content of the data just read
 			// Compare results
 			//printf("INFO: Comparing source and destination buffers.\n\r");
 			if(0  != memcmp(&(data[0]), FPGA_on_chip_RAM_addr, data_in_one_operation))
 			{
-				printf("DMA source and destiny have different data on RD!! Program ended\n\r");return 1;
+				printf("DMA src and dst have different data on RD!! Program ended\n\r");
+        return 1;
 			}
 
 			//free dynamic memory
 			free(data);
 		}
 
-		print("%d, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld\n\r", data_size[i], total_dma_wr/REP_TESTS, min_dma_wr, max_dma_wr, variance(variance_dma_wr, total_dma_wr, REP_TESTS), total_dma_rd/REP_TESTS, min_dma_rd, max_dma_rd,  variance(variance_dma_rd, total_dma_rd, REP_TESTS) );
+		printf("%d, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld\n\r",
+    data_size[i], total_dma_wr/REP_TESTS, min_dma_wr, max_dma_wr,
+    variance(var_dma_wr, total_dma_wr, REP_TESTS),
+    total_dma_rd/REP_TESTS, min_dma_rd, max_dma_rd,
+    variance(var_dma_rd, total_dma_rd, REP_TESTS) );
 	}
 
-
-	print("\n\r--PL330 DMAC tests (DMAC program preparation time NOT included)--\n\r");
+	printf("\n\r--PL330 DMAC tests (DMAC uCode prep. time NOT included)--\n\r");
 	//Moving data with DMAC (DMAC program preparation is measured)
-	print("Data Size,Average DMA_WR,Minimum DMA_WR,Maximum DMA_WR,Variance DMA_WR,Average DMA_RD,Minimum DMA_RD,Maximum DMA_RD,Variance DMA_RD\n\r");
-    for(i=0; i<number_of_data_sizes; i++)//for each data size
+  printf("Data Size,Average DMA_WR,Min DMA_WR,Max DMA_WR,Variance DMA_WR");
+  printf(",Average DMA_RD,Min DMA_RD,Max DMA_RD,Variance DMA_RD\n\r");
+  for(i=0; i<number_of_data_sizes; i++)//for each data size
 	{
-		reset_cumulative( &total_dma_wr, &min_dma_wr, &max_dma_wr, &variance_dma_wr);
-		reset_cumulative( &total_dma_rd, &min_dma_rd, &max_dma_rd, &variance_dma_rd);
+		reset_cumulative( &total_dma_wr, &min_dma_wr, &max_dma_wr, &var_dma_wr);
+		reset_cumulative( &total_dma_rd, &min_dma_rd, &max_dma_rd, &var_dma_rd);
 
 		//reserve the exact memory of the data size
 		data = (char*) malloc(data_size[i]);
@@ -406,14 +437,16 @@ int main(int argc, char **argv)
 			return 1;
 		}
 
-		if (cache_config >= 6) //if data cache is on access through ACP to coherent data in cache
+		if (cache_config >= 6) //if data cache is ON, access coherently through ACP
 		{
 			wr_dst = (char*) FPGA_on_chip_RAM_addr;
-			wr_src = (char*)((void*)(data)+0x80000000); //+0x80000000 to access through ACP
-			rd_dst = (char*)((void*)(data)+0x80000000);
+			wr_src = (char*)((void*)(data)+0x80000000); //+0x80000000
+			rd_dst = (char*)((void*)(data)+0x80000000); //to access through ACP
 			rd_src = (char*) FPGA_on_chip_RAM_addr;
 		}
-		else//if data cache is off it does not make sense to access through ACP (it will be slower than direct access to sdram controller)
+    //if data cache is off it does not make sense to access through ACP
+    //(it will be slower than direct access to sdram controller)
+		else
 		{
 			wr_dst = (char*) FPGA_on_chip_RAM_addr;
 			wr_src = data;
@@ -433,23 +466,20 @@ int main(int argc, char **argv)
 			operation_loops = 1;
 		}
 
-		//reserve memory for the DMAC programs
-		//ALT_DMA_PROGRAM_t *programs_wr = (ALT_DMA_PROGRAM_t*) malloc(operation_loops*sizeof(ALT_DMA_PROGRAM_t)); //one program per loop
-		//ALT_DMA_PROGRAM_t *programs_rd = (ALT_DMA_PROGRAM_t*) malloc(operation_loops*sizeof(ALT_DMA_PROGRAM_t)); //one program per loop
-
 		for (j=0; j<operation_loops; j++)
 		{
 			//write programs
-			alt_dma_memory_to_memory_only_prepare_program(Dma_Channel, programs_wr[j], wr_dst,
-					&(wr_src[j*ON_CHIP_MEMORY_SPAN]), data_in_one_operation, false, (ALT_DMA_EVENT_t)0);
+			alt_dma_memory_to_memory_only_prepare_program(Dma_Channel, programs_wr[j],
+        wr_dst, &(wr_src[j*ON_CHIP_MEMORY_SPAN]), data_in_one_operation, false,
+        (ALT_DMA_EVENT_t)0);
 			//read programs
-			alt_dma_memory_to_memory_only_prepare_program(Dma_Channel, programs_rd[j], &(rd_dst[j*ON_CHIP_MEMORY_SPAN]),
-					rd_src, data_in_one_operation, false, (ALT_DMA_EVENT_t)0);
+			alt_dma_memory_to_memory_only_prepare_program(Dma_Channel, programs_rd[j],
+        &(rd_dst[j*ON_CHIP_MEMORY_SPAN]), rd_src, data_in_one_operation, false,
+        (ALT_DMA_EVENT_t)0);
 		}
 
 		for(l = 0; l<REP_TESTS+2; l++)
 		{
-
 			//save some content in data (for example: i)
 			for (j=0; j<data_size[i]; j++) data[j] = i;
 
@@ -479,23 +509,26 @@ int main(int argc, char **argv)
 			}
 
 			overflow = pmu_counter_read_ns(&pmu_counter_ns);
-			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");return 1;}
+			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
+        return 1;}
 			//printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
 
-			if (l>=2) update_cumulative(&total_dma_wr, &min_dma_wr, &max_dma_wr, &variance_dma_wr, 0, pmu_counter_ns, clk_read_average);
-			//(We erase two first measurements because they are different from the others. Reason:Branch prediction misses when entering for loop)
+			if (l>=2) update_cumulative(&total_dma_wr, &min_dma_wr, &max_dma_wr,
+        &var_dma_wr, 0, pmu_counter_ns, clk_overhead);
+			//(We erase two first measurements because they are different from the
+      //others. Reason:Branch prediction misses when entering for loop)
 
 			//check the content of the data just read
 			// Compare results
 			//printf("INFO: Comparing source and destination buffers.\n\r");
 			if(0  != memcmp(&(data[0]), FPGA_on_chip_RAM_addr, data_in_one_operation))
 			{
-				printf("DMA source and destiny have different data on WR!! Program ended\n\r");return 1;
+				printf("DMA source and destiny have different data on WR!!");
+        printf("Program ended\n\r");
+        return 1;
 			}
-
-			//printf("%d: %lld, %lld, %lld, %lld, %lld\n\r",l, pmu_counter_ns-clk_read_average, total_dma_wr, min_dma_wr, max_dma_wr, variance_dma_wr);
-
-
+			//printf("%d: %lld, %lld, %lld, %lld, %lld\n\r",l,pmu_counter_ns-
+      //clk_overhead, total_dma_wr, min_dma_wr, max_dma_wr, var_dma_wr);
 			//--READ DATA FROM FPGA ON-CHIP RAM
 			pmu_counter_reset();
 
@@ -522,31 +555,41 @@ int main(int argc, char **argv)
 			}
 
 			overflow = pmu_counter_read_ns(&pmu_counter_ns);
-			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");return 1;}
+			if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
+        return 1;}
 
-			if (l>=2) update_cumulative(&total_dma_rd, &min_dma_rd, &max_dma_rd, &variance_dma_rd, 0, pmu_counter_ns, clk_read_average);
-			//(We erase two first measurements because they are different from the others. Reason:Branch prediction misses when entering for loop)
+			if (l>=2) update_cumulative(&total_dma_rd, &min_dma_rd, &max_dma_rd,
+        &var_dma_rd, 0, pmu_counter_ns, clk_overhead);
+			//(We erase two first measurements because they are different from the
+      //others. Reason:Branch prediction misses when entering for loop)
 
 			//check the content of the data just read
 			// Compare results
 			//printf("INFO: Comparing source and destination buffers.\n\r");
 			if(0  != memcmp(&(data[0]), FPGA_on_chip_RAM_addr, data_in_one_operation))
 			{
-				printf("DMA source and destiny have different data on RD!! Program ended\n\r");return 1;
+				printf("DMA source and destiny have different data on RD!!");
+        printf("Program ended\n\r");return 1;
 			}
 		}
 
-		print("%d, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld\n\r", data_size[i], total_dma_wr/REP_TESTS, min_dma_wr, max_dma_wr, variance(variance_dma_wr, total_dma_wr, REP_TESTS), total_dma_rd/REP_TESTS, min_dma_rd, max_dma_rd,  variance(variance_dma_rd, total_dma_rd, REP_TESTS) );
+		printf("%d, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld\n\r",
+    data_size[i], total_dma_wr/REP_TESTS, min_dma_wr, max_dma_wr,
+    variance(var_dma_wr, total_dma_wr, REP_TESTS),
+    total_dma_rd/REP_TESTS, min_dma_rd, max_dma_rd,
+    variance(var_dma_rd, total_dma_rd, REP_TESTS) );
 
 		//free dynamic memory
 		free(data);
 	}
 
+  #ifdef EN_LOCKDOWN_STUDY
+  }
+  #endif
+
 	printf("\n\rData transfer measurements finished!!!!\n\r");
-
-    return 0;
+  return 0;
 }
-
 
 //--------------------------DMA FUNCTIONS--------------------------//
 ALT_STATUS_CODE PL330_DMAC_init(void)
@@ -581,8 +624,6 @@ ALT_STATUS_CODE PL330_DMAC_init(void)
 
         status = alt_dma_init(&dma_config);
     }
-
-
     return status;
 }
 
@@ -591,4 +632,25 @@ ALT_STATUS_CODE PL330_DMAC_uninit(void)
     printf("INFO: DMA shutdown.\n\r");
     printf("\n\r");
     return ALT_E_SUCCESS;
+}
+
+ALT_STATUS_CODE PL330_DMAC_wait(ALT_DMA_CHANNEL_t Dma_Channel)
+{
+  //to call after a transfer is initiated, to wait for a transfer to end
+  //printf("INFO: Waiting for DMA transfer to complete.\n\r");
+  ALT_STATUS_CODE status = ALT_E_SUCCESS;
+  ALT_DMA_CHANNEL_FAULT_t fault;
+  ALT_DMA_CHANNEL_STATE_t channel_state = ALT_DMA_CHANNEL_STATE_EXECUTING;
+
+  while((status == ALT_E_SUCCESS) && (channel_state != ALT_DMA_CHANNEL_STATE_STOPPED))
+  {
+    status = alt_dma_channel_state_get(Dma_Channel, &channel_state);
+    if(channel_state == ALT_DMA_CHANNEL_STATE_FAULTING)
+    {
+      alt_dma_channel_fault_status_get(Dma_Channel, &fault);
+      printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
+      return 1;
+    }
+  }
+  return 0;
 }
