@@ -227,6 +227,7 @@ int main()
     //-----Modify lockdown in L2 cache controller--//
     #ifdef EN_LOCKDOWN_STUDY
     int h;
+    int lockdown_cpu, lockdown_acp;
     for (h=0; h<7; h++)
     {
       switch(h)
@@ -236,27 +237,33 @@ int main()
         break;
       case 1:
         printf("\n\rLOCK CPUS 1 way\n\r");
-        L2_lockdown_by_master(0b00000001, 0b00000001, 0b00000000, 3, 4);
+        lockdown_cpu = 0b00000001;
+        lockdown_acp = 0b00000000;
         break;
       case 2:
         printf("\n\rLOCK CPUS 4 ways\n\r");
-        L2_lockdown_by_master(0b00001111, 0b00001111, 0b00000000, 3, 4);
+        lockdown_cpu = 0b00001111;
+        lockdown_acp = 0b00000000;
         break;
       case 3:
         printf("\n\rLOCK CPUS 7 ways\n\r");
-        L2_lockdown_by_master(0b01111111, 0b01111111, 0b00000000, 3, 4);
+        lockdown_cpu = 0b01111111;
+        lockdown_acp = 0b00000000;
         break;
       case 4:
         printf("\n\rLOCK CPUS 1 way and ACP the other 7 ways\n\r");
-        L2_lockdown_by_master(0b00000001, 0b00000001, 0b11111110, 3, 4);
+        lockdown_cpu = 0b00000001;
+        lockdown_acp = 0b11111110;
         break;
       case 5:
         printf("\n\rLOCK CPUS 4 ways and ACP the other 4 ways\n\r");
-        L2_lockdown_by_master(0b00001111, 0b00001111, 0b11110000, 3, 4);
+        lockdown_cpu = 0b00001111;
+        lockdown_acp = 0b11110000;
         break;
       case 6:
         printf("\n\rLOCK CPUS 7 ways and ACP the other way\n\r");
-        L2_lockdown_by_master(0b01111111, 0b01111111, 0b10000000, 3, 4);
+        lockdown_cpu = 0b01111111;
+        lockdown_acp = 0b10000000;
       default:
         break;
       }
@@ -313,7 +320,15 @@ int main()
 			  }
 
 			  //save some content in data (for example: i)
+        #ifdef EN_LOCKDOWN_STUDY
+        //permit CPU to use all cache to save data
+        L2_lockdown_by_master(0b00000000, 0b00000000, 0b00000000, 3, 4);
+        #endif
 			  for (j=0; j<data_size[i]; j++) data[j] = i;
+        #ifdef EN_LOCKDOWN_STUDY
+        //apply lockdown for the transfer
+        L2_lockdown_by_master(lockdown_cpu, lockdown_cpu, lockdown_acp, 3, 4);
+        #endif
 
 			  //--WRITE DATA TO FPGA ON-CHIP RAM
 			  pmu_counter_reset();
@@ -478,8 +493,16 @@ int main()
 
 		for(l = 0; l<REP_TESTS+2; l++)
 		{
-			//save some content in data (for example: i)
-			for (j=0; j<data_size[i]; j++) data[j] = i;
+      //save some content in data (for example: i)
+      #ifdef EN_LOCKDOWN_STUDY
+      //permit CPU to use all cache to save data
+      L2_lockdown_by_master(0b00000000, 0b00000000, 0b00000000, 3, 4);
+      #endif
+      for (j=0; j<data_size[i]; j++) data[j] = i;
+      #ifdef EN_LOCKDOWN_STUDY
+      //apply lockdown for the transfer
+      L2_lockdown_by_master(lockdown_cpu, lockdown_cpu, lockdown_acp, 3, 4);
+      #endif
 
 			//--WRITE DATA TO FPGA ON-CHIP RAM
 			pmu_counter_reset();
