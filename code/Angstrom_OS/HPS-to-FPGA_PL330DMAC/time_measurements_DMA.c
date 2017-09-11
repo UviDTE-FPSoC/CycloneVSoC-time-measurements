@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+#include "configuration.h"
 #include "pmu.h" //to measure time with PMU
 #include "statistics.h" //do some statistics (mean, min, max, variance)
 
@@ -189,10 +190,73 @@ int main(int argc, char **argv) {
   //-----------MOVING DATA WITH DMAC------------//
   print("\n------MOVING DATA WITH THE DMA_PL330 driver-----\n");
 
-  //Configure the hardware address of the buffer to use in DMA transactions
-  //(the On-Chip RAM in FPGA) using sysfs
+  //-----Modify lockdown in L2 cache controller--//
   int f_sysfs;
   char d[14];
+  #ifdef EN_LOCKDOWN_STUDY
+  int h;
+  int lockdown_cpu, lockdown_acp;
+  for (h=0; h<7; h++)
+  {
+    switch(h)
+    {
+    case 0:
+      print("\n\rNO LOCKDOWN\n\r");
+      break;
+    case 1:
+      print("\n\rLOCK CPUS 1 way\n\r");
+      lockdown_cpu = 0b00000001;
+      lockdown_acp = 0b00000000;
+      break;
+    case 2:
+      print("\n\rLOCK CPUS 4 ways\n\r");
+      lockdown_cpu = 0b00001111;
+      lockdown_acp = 0b00000000;
+      break;
+    case 3:
+      print("\n\rLOCK CPUS 7 ways\n\r");
+      lockdown_cpu = 0b01111111;
+      lockdown_acp = 0b00000000;
+      break;
+    case 4:
+      print("\n\rLOCK CPUS 1 way and ACP the other 7 ways\n\r");
+      lockdown_cpu = 0b00000001;
+      lockdown_acp = 0b11111110;
+      break;
+    case 5:
+      print("\n\rLOCK CPUS 4 ways and ACP the other 4 ways\n\r");
+      lockdown_cpu = 0b00001111;
+      lockdown_acp = 0b11110000;
+      break;
+    case 6:
+      print("\n\rLOCK CPUS 7 ways and ACP the other way\n\r");
+      lockdown_cpu = 0b01111111;
+      lockdown_acp = 0b10000000;
+    default:
+      break;
+    }
+    sprintf(d, "%u", (uint32_t) lockdown_cpu);
+    f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_cpu", O_WRONLY);
+    if (f_sysfs < 0)
+    {
+      printf("Failed to open sysfs for lockdown_cpu.\n");
+      return errno;
+    }
+    write (f_sysfs, &d, 14);
+    close(f_sysfs);
+    sprintf(d, "%u", (uint32_t) lockdown_acp);
+    f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_acp", O_WRONLY);
+    if (f_sysfs < 0)
+    {
+      printf("Failed to open sysfs for lockdown_acp.\n");
+      return errno;
+    }
+    write (f_sysfs, &d, 14);
+    close(f_sysfs);
+  #endif
+
+  //Configure the hardware address of the buffer to use in DMA transactions
+  //(the On-Chip RAM in FPGA) using sysfs
   print("\nConfig. DMA_PL330 module using sysfs entries in /sys/dma_pl330\n");
 
   sprintf(d, "%u", (uint32_t) DMA_BUFF_PADD);
@@ -373,6 +437,9 @@ int main(int argc, char **argv) {
     }
   }
 
+  #ifdef EN_LOCKDOWN_STUDY
+  }
+  #endif
 
 	// --------------clean up our memory mapping and exit -----------------//
 	if( munmap( virtual_base, MMAP_SPAN ) != 0 )

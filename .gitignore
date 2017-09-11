@@ -1,0 +1,31 @@
+#Files after compilation not to be uploaded to the repository
+
+#C code
+**.o
+**.mod
+**.mod.c
+**.cmd
+**.bin**
+**.axf**
+
+#Quartus II files
+**/FPGA-hardware/**/**/.qsys_edit/**
+**/FPGA-hardware/**/**/db/**
+**/FPGA-hardware/**/**/incremental_db/**
+**/FPGA-hardware/**/**/soc_system/**
+**/FPGA-hardware/**/**/hps_isw_handoff/**
+**/FPGA-hardware/**/**/*.txt
+**/FPGA-hardware/**/**/*.rpt
+**/FPGA-hardware/**/**/*.csv
+**/FPGA-hardware/**/**/*.done
+**/FPGA-hardware/**/**/*.smsg
+**/FPGA-hardware/**/**/*.summary
+**/FPGA-hardware/**/**/*.pin
+**/FPGA-hardware/**/**/*.jdi
+**/FPGA-hardware/**/**/*.sopcinfo
+**/FPGA-hardware/**/**/*.sld
+**/FPGA-hardware/**/**/*.qws
+**/FPGA-hardware/**/**/*.sof
+**/FPGA-hardware/**/**/*.rbf
+**/FPGA-hardware/**/**/*.cdf
+**/FPGA-hardware/**/**/*.stp
