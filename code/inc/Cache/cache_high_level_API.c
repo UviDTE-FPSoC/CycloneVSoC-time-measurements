@@ -164,8 +164,7 @@ void L2_lockdown_by_master(int CPU0_ways, int CPU1_ways, int ACP_ways,
 			*lockdown_reg_data = ACP_ways;
 			*lockdown_reg_intr = ACP_ways;
 		}
-
-		printf("reg %X = %X ",(unsigned int)lockdown_reg_data, *lockdown_reg_data);
-		printf("reg %X = %X\n\r",(unsigned int)lockdown_reg_intr, *lockdown_reg_intr);
+		printf("reg %X= %X ", (unsigned int)lockdown_reg_data, *lockdown_reg_data);
+		printf("reg %X= %X ", (unsigned int)lockdown_reg_intr, *lockdown_reg_intr);
 	}
 }

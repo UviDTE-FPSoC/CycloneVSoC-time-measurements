@@ -114,6 +114,6 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 #define CLK_REP_TESTS 1000
 
 //enables repetition of experiments with different lockdown cofigurations
-//#define EN_LOCKDOWN_STUDY
+#define EN_LOCKDOWN_STUDY
 
 #endif //__CONFIGURATION_H__
