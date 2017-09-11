@@ -236,29 +236,29 @@ int main()
         break;
       case 1:
         printf("\n\rLOCK CPUS 1 way\n\r");
-        L2_lockdown_by_master(0b00000001, 0b00000001, 0b00000000, 2, 3);
+        L2_lockdown_by_master(0b00000001, 0b00000001, 0b00000000, 3, 4);
         break;
       case 2:
         printf("\n\rLOCK CPUS 4 ways\n\r");
-        L2_lockdown_by_master(0b00001111, 0b00001111, 0b00000000, 2, 3);
+        L2_lockdown_by_master(0b00001111, 0b00001111, 0b00000000, 3, 4);
         break;
       case 3:
         printf("\n\rLOCK CPUS 7 ways\n\r");
-        L2_lockdown_by_master(0b01111111, 0b01111111, 0b00000000, 2, 3);
+        L2_lockdown_by_master(0b01111111, 0b01111111, 0b00000000, 3, 4);
       case 4:
         printf("\n\rNO LOCKDOWN\n\r");
         break;
       case 5:
         printf("\n\rLOCK CPUS 1 way and ACP the other 7 ways\n\r");
-        L2_lockdown_by_master(0b00000001, 0b00000001, 0b11111110, 2, 3);
+        L2_lockdown_by_master(0b00000001, 0b00000001, 0b11111110, 3, 4);
         break;
       case 6:
         printf("\n\rLOCK CPUS 4 ways and ACP the other 4 ways\n\r");
-        L2_lockdown_by_master(0b00001111, 0b00001111, 0b11110000, 2, 3);
+        L2_lockdown_by_master(0b00001111, 0b00001111, 0b11110000, 3, 4);
         break;
       case 7:
         printf("\n\rLOCK CPUS 7 ways and ACP the other way\n\r");
-        L2_lockdown_by_master(0b01111111, 0b01111111, 0b10000000, 2, 3);
+        L2_lockdown_by_master(0b01111111, 0b01111111, 0b10000000, 3, 4);
       default:
         break;
       }
