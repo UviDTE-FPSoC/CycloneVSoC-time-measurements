@@ -10,35 +10,20 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdarg.h>
+#ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+#include <pthread.h>
+#endif
 
 #include "configuration.h"
 #include "pmu.h" //to measure time with PMU
 #include "statistics.h" //do some statistics (mean, min, max, variance)
 
-//Constants to do mmap and get access to FPGA through HPS-FPGA bridge
-#define HPS_FPGA_BRIDGE_BASE 0xC0000000 //Beginning of H2F bridge
-#define MMAP_BASE ( HPS_FPGA_BRIDGE_BASE )
-#define MMAP_SPAN ( 0x04000000 )
-#define MMAP_MASK ( MMAP_SPAN - 1 )
-#define ON_CHIP_MEMORY_BASE 0 //FPGA On-Chip RAM address relative to H2F bridge
-/*
-//Consts to do mmap and get access to FPGA through Lightweight HPS-FPGA bridge
-#define HPS_FPGA_BRIDGE_BASE 0xFF200000 //Beginning of LW H2F bridge
-#define MMAP_BASE ( HPS_FPGA_BRIDGE_BASE )
-#define MMAP_BASE_SPAN ( 0x00080000 )
-#define MMAP_BASE_MASK ( MMAP_SPAN - 1 )
-#define ON_CHIP_MEMORY_BASE 0x40000 //FPGA On-Chip RAM address relative to LW H2F bridge
-*/
-
-//Constants for the time experiments:
-#define REP_TESTS 100 //repetitions of each time experiment
-#define CLK_REP_TESTS 1000 //repetitions to get clock statistics
-#define ON_CHIP_MEMORY_SPAN 262144 //FPGA On-Chip RAM size in Bytes
-//DMA_BUFF_PADD: Physical address of the FPGA On-Chip RAM
-#define DMA_BUFF_PADD (HPS_FPGA_BRIDGE_BASE + ON_CHIP_MEMORY_BASE)
-
-//Declaration of some extra functions for debugging
+//Declaration of some extra functions
 void printbuff(char* buff, int size);
+//changes L2C controller lockdown by master configuration
+int set_L2C_lockdown(int lockdown_cpu, int lockdown_acp);
+//generates dummy traffic in cache to slow down transfers
+void genereate_dummy_traffic();
 
 //Declaration of the function and variables to print in file or screen
 int print_screen; //0 save results into file, 1 print results in screen
@@ -191,8 +176,6 @@ int main(int argc, char **argv) {
   print("\n------MOVING DATA WITH THE DMA_PL330 driver-----\n");
 
   //-----Modify lockdown in L2 cache controller--//
-  int f_sysfs;
-  char d[14];
   #ifdef EN_LOCKDOWN_STUDY
   int h;
   int lockdown_cpu, lockdown_acp;
@@ -202,6 +185,8 @@ int main(int argc, char **argv) {
     {
     case 0:
       print("\n\rNO LOCKDOWN\n\r");
+      lockdown_cpu = 0b00000000;
+      lockdown_acp = 0b00000000;
       break;
     case 1:
       print("\n\rLOCK CPUS 1 way\n\r");
@@ -235,30 +220,25 @@ int main(int argc, char **argv) {
     default:
       break;
     }
-    sprintf(d, "%u", (uint32_t) lockdown_cpu);
-    f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_cpu", O_WRONLY);
-    if (f_sysfs < 0)
-    {
-      printf("Failed to open sysfs for lockdown_cpu.\n");
-      return errno;
-    }
-    write (f_sysfs, &d, 14);
-    close(f_sysfs);
-    sprintf(d, "%u", (uint32_t) lockdown_acp);
-    f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_acp", O_WRONLY);
-    if (f_sysfs < 0)
-    {
-      printf("Failed to open sysfs for lockdown_acp.\n");
-      return errno;
-    }
-    write (f_sysfs, &d, 14);
-    close(f_sysfs);
+    #ifndef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+    printf("Lock at the beginning of the program\n\r");
+    if (set_L2C_lockdown(lockdown_cpu, lockdown_acp)!=0) return 1;
+    #else
+    printf("Lock after CPU generates the data\n\r");
+    #endif
+  #endif
+  #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+  printf("Dummy traffic is generated to pollute cache\n\r");
+  pthread_t t;
+  pthread_create(&t, NULL, genereate_dummy_traffic, NULL);
   #endif
 
   //Configure the hardware address of the buffer to use in DMA transactions
   //(the On-Chip RAM in FPGA) using sysfs
   print("\nConfig. DMA_PL330 module using sysfs entries in /sys/dma_pl330\n");
 
+  int f_sysfs;
+  char d[14];
   sprintf(d, "%u", (uint32_t) DMA_BUFF_PADD);
   f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/dma_buff_padd", O_WRONLY);
   if (f_sysfs < 0)
@@ -370,7 +350,16 @@ int main(int argc, char **argv) {
         }
 
         //fill uP memory with some data
-        for(j=0; j<data_size[i]; j++) data[j] = i+1;
+        //save some content in data (for example: i)
+        #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+        //permit CPU to use all cache to save data
+        if (set_L2C_lockdown(0, 0)!=0) return 1;
+        #endif
+			  for(j=0; j<data_size[i]; j++) data[j] = i+1;
+        #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+        //apply lockdown for the transfer
+        if (set_L2C_lockdown(lockdown_cpu, lockdown_acp)!=0) return 1;
+        #endif
 
         //--WRITE DATA TO FPGA ON-CHIP RAM
         pmu_counter_reset();
@@ -470,4 +459,43 @@ void printbuff(char* buff, int size)
   }
   printf("]");
   printf("\n");
+}
+
+//-------FUNCTION TO CHANGE L2 CONTROLLER LOCKDOWN BY MASTER SETTINGS------//
+int set_L2C_lockdown(int lockdown_cpu, int lockdown_acp)
+{
+  int f_sysfs;
+  char d[14];
+
+  sprintf(d, "%d", (int) lockdown_cpu);
+  f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_cpu", O_WRONLY);
+  if (f_sysfs < 0)
+  {
+    printf("Failed to open sysfs for lockdown_cpu.\n");
+    return errno;
+  }
+  write (f_sysfs, &d, 14);
+  close(f_sysfs);
+  sprintf(d, "%d", (int) lockdown_acp);
+  f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/lockdown_acp", O_WRONLY);
+  if (f_sysfs < 0)
+  {
+    printf("Failed to open sysfs for lockdown_acp.\n");
+    return errno;
+  }
+  write (f_sysfs, &d, 14);
+  close(f_sysfs);
+  return 0;
+}
+
+void genereate_dummy_traffic()
+{
+  char* dummydata = (char*) malloc(2*1024*1024); //2MB
+  int i_dummy;
+  while(1)
+  {
+    i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+    dummydata[i_dummy] = (char)i_dummy;
+  }
+  free(dummydata);
 }

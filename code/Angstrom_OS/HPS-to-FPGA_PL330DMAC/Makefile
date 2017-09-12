@@ -9,7 +9,7 @@ STATISTICS_PATH = ../../inc/Statistics
 PMU_PATH = ../../inc/PMU
 CC = $(CROSS_COMPILE)gcc
 ARCH= arm
-LDFLAGS =  -g -Wall -I$(STATISTICS_PATH) -I$(PMU_PATH)
+LDFLAGS =  -g -pthread -Wall -I$(STATISTICS_PATH) -I$(PMU_PATH)
 
 time_measurements_DMA: time_measurements_DMA.o pmu.o statistics.o
 	$(CC) $(LDFLAGS) -o time_measurements_DMA time_measurements_DMA.o pmu.o statistics.o
