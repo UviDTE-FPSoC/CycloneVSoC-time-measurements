@@ -50,6 +50,9 @@ int main()
 	ALT_STATUS_CODE status = ALT_E_SUCCESS;
 
 	int i, j, l; //vars for loops
+  #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+  int i_dummy = 0;
+  #endif
 
 	//cache configuration
 	int cache_config = CACHE_CONFIG;
@@ -234,6 +237,8 @@ int main()
       {
       case 0:
         printf("\n\rNO LOCKDOWN\n\r");
+        lockdown_cpu = 0b00000000;
+        lockdown_acp = 0b00000000;
         break;
       case 1:
         printf("\n\rLOCK CPUS 1 way\n\r");
@@ -267,6 +272,21 @@ int main()
       default:
         break;
       }
+      #ifndef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+      L2_lockdown_by_master(lockdown_cpu, lockdown_cpu, lockdown_acp, 3, 4);
+      printf("Lock at the beginning of the program\n\r");
+      #else
+      printf("Lock after CPU generates the data\n\r");
+      #endif
+    #endif
+    #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+    printf("Dummy traffic is generated to pollute cache\n\r");
+    char* dummydata = (char*) malloc(2*1024*1024); //2MB
+    if (dummydata == 0)
+    {
+      printf("ERROR when calling malloc for dummy data: Out of memory\n\r");
+      return 1;
+    }
     #endif
 
 	  printf("\n\r--PL330 DMAC tests (DMAC uCode preparation time included)--\n\r");
@@ -320,12 +340,12 @@ int main()
 			  }
 
 			  //save some content in data (for example: i)
-        #ifdef EN_LOCKDOWN_STUDY
+        #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
         //permit CPU to use all cache to save data
         L2_lockdown_by_master(0b00000000, 0b00000000, 0b00000000, 3, 4);
         #endif
 			  for (j=0; j<data_size[i]; j++) data[j] = i;
-        #ifdef EN_LOCKDOWN_STUDY
+        #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
         //apply lockdown for the transfer
         L2_lockdown_by_master(lockdown_cpu, lockdown_cpu, lockdown_acp, 3, 4);
         #endif
@@ -353,6 +373,10 @@ int main()
 							  printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
 							  return 1;
 						  }
+              #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+              i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+              dummydata[i_dummy] = (char)status;
+              #endif
 					  }
 				 }
 			}
@@ -400,6 +424,10 @@ int main()
 							printf("ERROR: DMA CHannel Fault: %d. Return\n\r", (int)fault);
 							return 1;
 						}
+            #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = (char)status;
+            #endif
 					}
 				}
 			}
@@ -494,12 +522,12 @@ int main()
 		for(l = 0; l<REP_TESTS+2; l++)
 		{
       //save some content in data (for example: i)
-      #ifdef EN_LOCKDOWN_STUDY
+      #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
       //permit CPU to use all cache to save data
       L2_lockdown_by_master(0b00000000, 0b00000000, 0b00000000, 3, 4);
       #endif
       for (j=0; j<data_size[i]; j++) data[j] = i;
-      #ifdef EN_LOCKDOWN_STUDY
+      #ifdef LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
       //apply lockdown for the transfer
       L2_lockdown_by_master(lockdown_cpu, lockdown_cpu, lockdown_acp, 3, 4);
       #endif
@@ -525,6 +553,10 @@ int main()
 							printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
 							return 1;
 						}
+            #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = (char)status;
+            #endif
 					}
 				}
 			}
@@ -571,6 +603,10 @@ int main()
 							printf("ERROR: DMA CHannel Fault: %d. Return\n\r", (int)fault);
 							return 1;
 						}
+            #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = (char)status;
+            #endif
 					}
 				}
 			}
@@ -603,6 +639,8 @@ int main()
 		//free dynamic memory
 		free(data);
 	}
+
+  free(dummydata);
 
   #ifdef EN_LOCKDOWN_STUDY
   }
@@ -653,25 +691,4 @@ ALT_STATUS_CODE PL330_DMAC_uninit(void)
     printf("INFO: DMA shutdown.\n\r");
     printf("\n\r");
     return ALT_E_SUCCESS;
-}
-
-ALT_STATUS_CODE PL330_DMAC_wait(ALT_DMA_CHANNEL_t Dma_Channel)
-{
-  //to call after a transfer is initiated, to wait for a transfer to end
-  //printf("INFO: Waiting for DMA transfer to complete.\n\r");
-  ALT_STATUS_CODE status = ALT_E_SUCCESS;
-  ALT_DMA_CHANNEL_FAULT_t fault;
-  ALT_DMA_CHANNEL_STATE_t channel_state = ALT_DMA_CHANNEL_STATE_EXECUTING;
-
-  while((status == ALT_E_SUCCESS) && (channel_state != ALT_DMA_CHANNEL_STATE_STOPPED))
-  {
-    status = alt_dma_channel_state_get(Dma_Channel, &channel_state);
-    if(channel_state == ALT_DMA_CHANNEL_STATE_FAULTING)
-    {
-      alt_dma_channel_fault_status_get(Dma_Channel, &fault);
-      printf("ERROR: DMA Channel Fault: %d. Return\n\r", (int)fault);
-      return 1;
-    }
-  }
-  return 0;
 }

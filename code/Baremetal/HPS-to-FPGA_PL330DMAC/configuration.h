@@ -113,7 +113,21 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 #define REP_TESTS 100 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
+//L2C LOCKDOWN STUDY MACROS
 //enables repetition of experiments with different lockdown cofigurations
-#define EN_LOCKDOWN_STUDY
+//1,4,7 ways locking are tested for CPU and ACP
+//It only makes sense if cache is switched on
+#if CACHE_CONFIG > 5
+	//uncomment to permit lockdown study
+	#define EN_LOCKDOWN_STUDY
+	#ifdef EN_LOCKDOWN_STUDY
+		//LOCKDOWN STUDY OPTIONS:
+		//Uncomment to lock only after transfer data is generated in cache by CPU
+		//#define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+		//Uncomment to generate dummy traffic in CPU memory to pollute cache and
+		//slowdown transfer through ACP
+		#define GENERATE_DUMMY_TRAFFIC_IN_CACHE
+	#endif
+#endif
 
 #endif //__CONFIGURATION_H__
