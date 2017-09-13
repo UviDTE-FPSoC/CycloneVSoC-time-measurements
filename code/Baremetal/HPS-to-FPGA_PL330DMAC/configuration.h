@@ -90,7 +90,7 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 #endif //ON_CHIP_RAM_ON_HFBRIDGE128
 
 //----------------------CACHE CONFIGURATION------------------------//
-#define CACHE_CONFIG 9
+#define CACHE_CONFIG 0
 /*Options for cache config (each config is added to the all previous ones):
 0 no cache
 (basic config and optimizations)
@@ -119,15 +119,25 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 //It only makes sense if cache is switched on
 #if CACHE_CONFIG > 5
 	//uncomment to permit lockdown study
-	#define EN_LOCKDOWN_STUDY
+	//#define EN_LOCKDOWN_STUDY
 	#ifdef EN_LOCKDOWN_STUDY
 		//LOCKDOWN STUDY OPTIONS:
 		//Uncomment to lock only after transfer data is generated in cache by CPU
 		//#define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
-		//Uncomment to generate dummy traffic in CPU memory to pollute cache and
-		//slowdown transfer through ACP
-		#define GENERATE_DUMMY_TRAFFIC_IN_CACHE
 	#endif
 #endif
+
+//SDRAM CONTROLLER STUDY MACROS
+//It only makes sense if cache is switched off when transfer is through SDRAMC
+#if (CACHE_CONFIG == 0)
+	//Uncomment to permit SDRAM Controller study. It uses different combinations
+	//of SDRAM priority and round-robin weights to increase priority of
+	//L3->SDRAMC port that PL330 DMAC uses to access memory.
+	//#define EN_SDRAMC_STUDY
+#endif
+
+//Uncomment to generate dummy traffic in CPU memory to pollute cache and
+//slowdown transfer through ACP
+//#define GENERATE_DUMMY_TRAFFIC_IN_CACHE
 
 #endif //__CONFIGURATION_H__

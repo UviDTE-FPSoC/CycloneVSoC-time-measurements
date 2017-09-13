@@ -20,6 +20,8 @@
 #include "statistics.h"
 //functions to init and control PMU as timer
 #include "pmu.h"
+//functions to modify SDRAM controller behaviour
+#include "sdramc.h"
 
 /* enable semihosting with gcc by defining an __auto_semihosting symbol */
 int __auto_semihosting;
@@ -279,6 +281,58 @@ int main()
       printf("Lock after CPU generates the data\n\r");
       #endif
     #endif
+
+    #ifdef EN_SDRAMC_STUDY
+    int g;
+    for (g=0; g<7; g++)
+    {
+      switch(g)
+      {
+      case 0:
+        printf("\n\rSDRAM DEFAULT CONFIGURATION\n\r");
+        print_sdramc_priorities_weights();
+        break;
+      case 1:
+        printf("\n\rSDRAM SAME PRIORITIES AND WEIGHTS ALL PORTS\n\r");
+        set_sdramc_priorities(0x0);
+        set_sdramc_weights(0x40000000, 0x2108);//same weights (1)
+        print_sdramc_priorities_weights();
+        break;
+      case 2:
+        printf("\n\rSDRAM SAME PRIORITIES L3 2x WEIGHT\n\r");
+        set_sdramc_priorities(0x0);
+        set_sdramc_weights(0x80000000, 0x2208);
+        print_sdramc_priorities_weights();
+        break;
+      case 3:
+        printf("\n\rSDRAM SAME PRIORITIES L3 4x WEIGHT\n\r");
+        set_sdramc_priorities(0x0);
+        set_sdramc_weights(0x0, 0x2409);
+        print_sdramc_priorities_weights();
+        break;
+      case 4:
+        printf("\n\rSDRAM SAME PRIORITIES L3 8x WEIGHT\n\r");
+        set_sdramc_priorities(0x0);
+        set_sdramc_weights(0x0, 0x280A);
+        print_sdramc_priorities_weights();
+        break;
+      case 5:
+        printf("\n\rSDRAM SAME PRIORITIES L3 16x WEIGHT\n\r");
+        set_sdramc_priorities(0x0);
+        set_sdramc_weights(0x0, 0x300C);
+        print_sdramc_priorities_weights();
+        break;
+      case 6:
+        printf("\n\rSDRAM L3 MORE PRIORITY\n\r");
+        set_sdramc_priorities(0x71C0000);
+        set_sdramc_weights(0x40000000, 0x2108);//same weights (1)
+        print_sdramc_priorities_weights();
+        break;
+      default:
+        break;
+      }
+    #endif
+
     #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
     printf("Dummy traffic is generated to pollute cache\n\r");
     char* dummydata = (char*) malloc(2*1024*1024); //2MB
@@ -375,7 +429,9 @@ int main()
 						  }
               #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
               i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
-              dummydata[i_dummy] = (char)status;
+              dummydata[i_dummy] = dummydata[i_dummy]+1;
+              i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+              dummydata[i_dummy] = dummydata[i_dummy]+1;
               #endif
 					  }
 				 }
@@ -426,7 +482,9 @@ int main()
 						}
             #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
             i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
-            dummydata[i_dummy] = (char)status;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
             #endif
 					}
 				}
@@ -555,7 +613,9 @@ int main()
 						}
             #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
             i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
-            dummydata[i_dummy] = (char)status;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
             #endif
 					}
 				}
@@ -605,7 +665,9 @@ int main()
 						}
             #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
             i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
-            dummydata[i_dummy] = (char)status;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
+            i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
+            dummydata[i_dummy] = dummydata[i_dummy]+1;
             #endif
 					}
 				}
@@ -639,9 +701,12 @@ int main()
 		//free dynamic memory
 		free(data);
 	}
-
+  #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
   free(dummydata);
-
+  #endif
+  #ifdef EN_SDRAMC_STUDY
+  }
+  #endif
   #ifdef EN_LOCKDOWN_STUDY
   }
   #endif
