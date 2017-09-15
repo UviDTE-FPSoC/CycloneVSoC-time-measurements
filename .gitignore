@@ -1,12 +1,17 @@
 #Files after compilation not to be uploaded to the repository
 
-#C code
+#C code intermediate files
 **.o
 **.mod
 **.mod.c
 **.cmd
-**.bin**
 **.axf**
+
+#Executables baremetal
+**.bin**
+#Executables CPU
+code/**/time_measurements_DMA
+code/**/time_measurements_CPU
 
 #Quartus II files
 **/FPGA-hardware/**/**/.qsys_edit/**

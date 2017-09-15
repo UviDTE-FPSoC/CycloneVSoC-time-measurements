@@ -90,7 +90,7 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 #endif //ON_CHIP_RAM_ON_HFBRIDGE128
 
 //----------------------CACHE CONFIGURATION------------------------//
-#define CACHE_CONFIG 0
+#define CACHE_CONFIG 9
 /*Options for cache config (each config is added to the all previous ones):
 0 no cache
 (basic config and optimizations)
@@ -123,7 +123,7 @@ typedef uint64_t  uint128_soc; //max len data size in Cortex A9 is 64-bit
 	#ifdef EN_LOCKDOWN_STUDY
 		//LOCKDOWN STUDY OPTIONS:
 		//Uncomment to lock only after transfer data is generated in cache by CPU
-		//#define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
+		#define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
 	#endif
 #endif
 
