@@ -57,7 +57,10 @@ Compilation
 If you wanna use the compiler used to compile the [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) driver (Angstrom 2013.12 toolchain), just open a Linux Terminal, navigate until the folder of the project and type **_make_**.
 
 If you are in Windows or you do not have available the toolchain used to compile [DMA_PL330_LKM](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Linux-modules/DMA_PL330_LKM) driver you can compile with the compiler in Intel FPGA SoC EDS. Modify the makefile to point to the correct toolchain (comment the toolchain used to compile the driver and uncomment the SoC EDS toolchain). Then open *SoC EDS Command Shell* (*Intel FPGA SoC EDS* needs to be installed in your system), navigate to the folder of the example and type **_make_**.
-This program was tested with Intel *FPGA SoC EDS v16.1*.
+
+The provided makefile is prepared to work with both the old hwlib folder structure (before *Intel FPGA SoC EDS v15*) and the new (*Intel FPGA SoC EDS v15* and ahead).
+
+This compilation process was tested with both *Altera SoC EDS v14.1* and *Intel FPGA SoC EDS v16.1*.
 
 The compilation process generates the executable file *time_measurments_DMA* in both cases.
 
@@ -85,8 +88,8 @@ How to test
 
 * Copy the executable into the SD card and run the application:
  ```bash
-  $ chmod 777 Test_DMA_PL330_LKM
-  $ ./Test_DMA_PL330_LKM #to print in screen
-  $ ./Test_DMA_PL330_LKM file_name.txt #to print in file
+  $ chmod 777 time_measurments_DMA
+  $ ./time_measurments_DMA #to print in screen
+  $ ./time_measurments_DMA file_name.txt #to print in file
 ```
 Sometimes the program fails with illegal instruction. That´s because the driver activated the PMU in one CPU while this program is running in the other. You can try to remove (using rmmod DMA_PL330.ko) and insert again the driver so the PMU of the other CPU gets activated. Other option is to use taskset to force the application to run in a specific core.
