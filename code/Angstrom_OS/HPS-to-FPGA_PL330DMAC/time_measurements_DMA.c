@@ -22,8 +22,13 @@
 void printbuff(char* buff, int size);
 //changes L2C controller lockdown by master configuration
 int set_L2C_lockdown(int lockdown_cpu, int lockdown_acp);
+//modify port priority and round-robin scheduler weights in SDRAM controller
+int set_sdramc_priorities(unsigned int  mppriority);
+int set_sdramc_weights(unsigned int  mpweight_0_4,
+  unsigned int mpweight_1_4);
 //generates dummy traffic in cache to slow down transfers
 void genereate_dummy_traffic();
+
 
 //Declaration of the function and variables to print in file or screen
 int print_screen; //0 save results into file, 1 print results in screen
@@ -175,6 +180,12 @@ int main(int argc, char **argv) {
   //-----------MOVING DATA WITH DMAC------------//
   print("\n------MOVING DATA WITH THE DMA_PL330 driver-----\n");
 
+  #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
+  print("Dummy traffic is generated to pollute cache\n\r");
+  pthread_t t;
+  pthread_create(&t, NULL, genereate_dummy_traffic, NULL);
+  #endif
+
   //-----Modify lockdown in L2 cache controller--//
   #ifdef EN_LOCKDOWN_STUDY
   int h;
@@ -227,10 +238,49 @@ int main(int argc, char **argv) {
     printf("Lock after CPU generates the data\n\r");
     #endif
   #endif
-  #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
-  printf("Dummy traffic is generated to pollute cache\n\r");
-  pthread_t t;
-  pthread_create(&t, NULL, genereate_dummy_traffic, NULL);
+
+  #ifdef EN_SDRAMC_STUDY
+  int g;
+  for (g=0; g<7; g++)
+  {
+    switch(g)
+    {
+    case 0:
+      print("\n\rSDRAM DEFAULT CONFIGURATION\n\r");
+      break;
+    case 1:
+      print("\n\rSDRAM SAME PRIORITIES AND WEIGHTS ALL PORTS\n\r");
+      set_sdramc_priorities(0x0);
+      set_sdramc_weights(0x40000000, 0x2108);//same weights (1)
+      break;
+    case 2:
+      print("\n\rSDRAM SAME PRIORITIES L3 2x WEIGHT\n\r");
+      set_sdramc_priorities(0x0);
+      set_sdramc_weights(0x80000000, 0x2208);
+      break;
+    case 3:
+      print("\n\rSDRAM SAME PRIORITIES L3 4x WEIGHT\n\r");
+      set_sdramc_priorities(0x0);
+      set_sdramc_weights(0x0, 0x2409);
+      break;
+    case 4:
+      print("\n\rSDRAM SAME PRIORITIES L3 8x WEIGHT\n\r");
+      set_sdramc_priorities(0x0);
+      set_sdramc_weights(0x0, 0x280A);
+      break;
+    case 5:
+      print("\n\rSDRAM SAME PRIORITIES L3 16x WEIGHT\n\r");
+      set_sdramc_priorities(0x0);
+      set_sdramc_weights(0x0, 0x300C);
+      break;
+    case 6:
+      print("\n\rSDRAM L3 MORE PRIORITY\n\r");
+      set_sdramc_priorities(0x71C0000);
+      set_sdramc_weights(0x40000000, 0x2108);//same weights (1)
+      break;
+    default:
+      break;
+    }
   #endif
 
   //Configure the hardware address of the buffer to use in DMA transactions
@@ -426,6 +476,10 @@ int main(int argc, char **argv) {
     }
   }
 
+  #ifdef EN_SDRAMC_STUDY
+  }
+  #endif
+
   #ifdef EN_LOCKDOWN_STUDY
   }
   #endif
@@ -488,6 +542,50 @@ int set_L2C_lockdown(int lockdown_cpu, int lockdown_acp)
   return 0;
 }
 
+int set_sdramc_priorities(unsigned int  mppriority)
+{
+  int f_sysfs;
+  char d[21];
+
+  sprintf(d, "%u", (int) mppriority);
+  f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/sdramc_priority", O_WRONLY);
+  if (f_sysfs < 0)
+  {
+    printf("Failed to open sysfs for mppriority.\n");
+    return errno;
+  }
+  write (f_sysfs, &d, 21);
+  close(f_sysfs);
+  return 0;
+}
+int set_sdramc_weights(unsigned int  mpweight_0_4,
+  unsigned int mpweight_1_4)
+{
+  int f_sysfs;
+  char d[21];
+
+  sprintf(d, "%u", (int) mpweight_0_4);
+  f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/sdramc_weight0", O_WRONLY);
+  if (f_sysfs < 0)
+  {
+    printf("Failed to open sysfs for mpweight_0_4.\n");
+    return errno;
+  }
+  write (f_sysfs, &d, 21);
+  close(f_sysfs);
+
+  sprintf(d, "%u", (int) mpweight_1_4);
+  f_sysfs = open("/sys/dma_pl330/pl330_lkm_attrs/sdramc_weight1", O_WRONLY);
+  if (f_sysfs < 0)
+  {
+    printf("Failed to open sysfs for mpweight_1_4.\n");
+    return errno;
+  }
+  write (f_sysfs, &d, 21);
+  close(f_sysfs);
+  return 0;
+}
+
 void genereate_dummy_traffic()
 {
   char* dummydata = (char*) malloc(2*1024*1024); //2MB
@@ -495,7 +593,7 @@ void genereate_dummy_traffic()
   while(1)
   {
     i_dummy++; if (i_dummy==2*1024*1024) i_dummy = 0;
-    dummydata[i_dummy] = (char)i_dummy;
+    dummydata[i_dummy] = dummydata[i_dummy]+1;
   }
   free(dummydata);
 }

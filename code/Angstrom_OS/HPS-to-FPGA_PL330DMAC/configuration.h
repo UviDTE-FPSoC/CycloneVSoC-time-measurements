@@ -36,10 +36,15 @@
 #ifdef EN_LOCKDOWN_STUDY
   //LOCKDOWN STUDY OPTIONS:
   //Uncomment to lock only after transfer data is generated in cache by CPU
-  #define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
-  //Uncomment to generate dummy traffic in CPU memory to pollute cache and
-  //slowdown transfer through ACP
-  //#define GENERATE_DUMMY_TRAFFIC_IN_CACHE
+  //#define LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA
 #endif
 
+//Uncomment to permit SDRAM Controller study. It uses different combinations
+//of SDRAM priority and round-robin weights to increase priority of
+//L3->SDRAMC port that PL330 DMAC uses to access memory.
+//#define EN_SDRAMC_STUDY
+
+//Uncomment to generate dummy traffic in CPU memory to pollute cache and
+//slowdown transfer through ACP
+//#define GENERATE_DUMMY_TRAFFIC_IN_CACHE
 #endif
