@@ -35,6 +35,8 @@
 #ifndef __ALT_ADDRESS_SPACE_H__
 #define __ALT_ADDRESS_SPACE_H__
 
+#define soc_cv_av
+
 #include <stdbool.h>
 #include "hwlib.h"
 #include "socal/hps.h"
