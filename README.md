@@ -4,7 +4,6 @@ CycloneVSoC-time-measurements
 - Message to reviewrs: This repository is under construction. It will be totally finished on Wednesday Sepember 20th.
 ```
 
-
 This repository contains Processor-FPGA transfer rate measurements in CycloneV-SoC.
 
 All numeric values for the paper *"Design Guidelines for Efficient Processor-FPGA Communication in FPSoC Devices"* are available in the file *"CycloneVSoC\_all\_measurements.xlsx"*. 

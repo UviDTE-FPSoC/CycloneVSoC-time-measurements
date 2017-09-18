@@ -1,5 +1,7 @@
-//#include <time.h>
-//#include <librt.h>
+//file: time_measuremnts_DMA.c
+//performs time measurements of data transfers between processor and FPGA using
+//the DMA controller PL330 available in HPS of Cyclone V SoC.Time is measured
+//with the Performance Monitoring Unit (PMU)
 
 #include <stdio.h>
 #include <stdlib.h>
