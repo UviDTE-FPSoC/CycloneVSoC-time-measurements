@@ -20,12 +20,16 @@ ifneq (,$(wildcard $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib/include/socal))
 SOCAL_ROOT := $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib/include
 endif
 
-# this will cahnge for system to system.  just needed to make the mkimage wrapper.  If you are using it after uboot it is not needed.
-MKI := mkimage
-
 ifndef SOCAL_ROOT
 $(error SOCAL_ROOT is undefined)
 endif
+
+#Program to convert img to bin. this will change from system to system.
+#If you are using only preloader to run baremetal app is not needed because
+#preloader uses img. When using preloader+uboot to run the application, you
+#need to generate the .bin.
+#If you are using it after uboot it is not needed.
+MKI := mkimage
 
 C_SRC := main.c $(IO_PATH)/io.c $(PMU_PATH)/pmu.c  $(CACHE_PATH)/cache_high_level_API.c $(CACHE_PATH)/acp_high_level_API.c $(STATISTICS_PATH)/statistics.c $(SDRAM_PATH)/sdramc.c alt_dma_modified.c alt_dma_program.c alt_address_space.c
 ASSEMBLER_SRC := $(CACHE_PATH)/arm_cache_modified.s
