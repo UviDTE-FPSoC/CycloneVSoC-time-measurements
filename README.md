@@ -1,5 +1,9 @@
 CycloneVSoC-time-measurements
 =======================
+```diff
+- Message to reviewrs: This repository is under construction. It will be totally finished on Wednesday Sepember 20th.
+```
+
 
 This repository contains Processor-FPGA transfer rate measurements in CycloneV-SoC.
 
