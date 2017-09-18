@@ -12,8 +12,6 @@
 #include "configuration.h"
 //high level API that permits to start cache with a single line
 #include "cache_high_level_API.h"
-//high level API that permits do a basic startup of ACP port
-#include "acp_high_level_API.h"
 //extract statistics from experiments (mean value, min, max, variance...)
 #include "statistics.h"
 //functions to init and control PMU as timer
@@ -22,34 +20,21 @@
 /* enable semihosting with gcc by defining an __auto_semihosting symbol */
 int __auto_semihosting;
 
-//Some functions to init and uninit DMA Controller
-ALT_STATUS_CODE PL330_DMAC_init(void);
-ALT_STATUS_CODE PL330_DMAC_uninit(void);
-
 int main(void)
 {
-
-	printf("-----MEASURING FPGA-HPS BRIDGES SPEED IN BAREMETAL----\n\r\r");
+	printf("---MEASURING HPS-FPGA BRIDGES SPEED IN BAREMETAL WITH CPU--\n\r\r");
 	#ifdef ON_CHIP_RAM_ON_LIGHTWEIGHT
 		printf("TESTING ON_CHIP_RAM_ON_LIGHTWEIGHT\n\r");
-		#define ALT_BRIDGE ALT_BRIDGE_LWH2F
 	#endif //ON_CHIP_RAM_ON_LIGHTWEIGHT
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE32
 		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE32\n\r");
-		#define ALT_BRIDGE ALT_BRIDGE_H2F
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE32
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE64
 		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE64\n\r");
-		#define ALT_BRIDGE ALT_BRIDGE_H2F
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE64
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE128
 		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE128\n\r");
-	#define ALT_BRIDGE ALT_BRIDGE_H2F
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE128
-
-	//printf("Size of uint32_soc is %d\n\r", sizeof(uint32_soc));
-	//printf("Size of uint64_soc is %d\n\r", sizeof(uint64_soc));
-	//printf("Size of uint128_t is %d\n\r", sizeof(uint128_soc));
 
 	printf("Each measurement is repeated %d times\n\r", REP_TESTS);
 
@@ -61,20 +46,6 @@ int main(void)
 
 	//cache configuration
 	int cache_config = CACHE_CONFIG;
-
-	//DMA ones
-	ALT_DMA_CHANNEL_t Dma_Channel;
-	ALT_DMA_PROGRAM_t program;
-	ALT_DMA_CHANNEL_STATE_t channel_state;
-	ALT_DMA_CHANNEL_FAULT_t fault;
-	char *rd_dst, *rd_src, *wr_dst, *wr_src; //source and destiny pointers for DMA in read and write from/to FPGA operations
-	ALT_DMA_PROGRAM_t *programs_wr[8];
-	ALT_DMA_PROGRAM_t *programs_rd[8];
-	for (j=0; j<8; j++)
-	{
-		programs_wr[j]=(ALT_DMA_PROGRAM_t*) malloc(sizeof(ALT_DMA_PROGRAM_t));
-		programs_rd[j]=(ALT_DMA_PROGRAM_t*) malloc(sizeof(ALT_DMA_PROGRAM_t));
-	}
 
 	//-------------Memory pointers------------//
 	//FPGA On-Chip RAM

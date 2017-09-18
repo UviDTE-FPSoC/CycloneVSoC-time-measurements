@@ -6,9 +6,8 @@ STATISTICS_PATH = ../../inc/Statistics
 PMU_PATH = ../../inc/PMU
 IO_PATH = ../../inc/Baremetal_IO
 FPGA_PATH = ../../inc/FPGA_system_headers
-SDRAM_PATH = ../../inc/SDRAMC
 
-INC = -I$(CACHE_PATH) -I$(STATISTICS_PATH) -I$(PMU_PATH) -I$(IO_PATH) -I$(FPGA_PATH) -I$(SDRAM_PATH)
+INC = -I$(CACHE_PATH) -I$(STATISTICS_PATH) -I$(PMU_PATH) -I$(IO_PATH) -I$(FPGA_PATH)
 
 # look for SoC EDS 15.0 directory structure
 ifneq (,$(wildcard $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av/socal))
@@ -31,7 +30,7 @@ endif
 #If you are using it after uboot it is not needed.
 MKI := mkimage
 
-C_SRC := main.c $(IO_PATH)/io.c $(PMU_PATH)/pmu.c  $(CACHE_PATH)/cache_high_level_API.c $(CACHE_PATH)/acp_high_level_API.c $(STATISTICS_PATH)/statistics.c $(SDRAM_PATH)/sdramc.c alt_dma_modified.c alt_dma_program.c alt_address_space.c
+C_SRC := main.c $(IO_PATH)/io.c $(PMU_PATH)/pmu.c  $(CACHE_PATH)/cache_high_level_API.c $(STATISTICS_PATH)/statistics.c
 ASSEMBLER_SRC := $(CACHE_PATH)/arm_cache_modified.s
 ALL_SRC  := $(C_SRC) $(ASSEMBLER_SRC)
 

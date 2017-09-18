@@ -22,7 +22,7 @@ This file indicates where On-Chip RAM is connected:
 //define some variable types
 typedef uint32_t	uint32_soc;
 typedef uint64_t	uint64_soc;
-typedef uint64_t  	uint128_soc;
+typedef uint64_t  uint128_soc;
 
 //define some macros depending on the situation
 #ifdef ON_CHIP_RAM_ON_LIGHTWEIGHT

@@ -33,7 +33,7 @@ ALT_STATUS_CODE PL330_DMAC_wait(ALT_DMA_CHANNEL_t Dma_Channel);
 
 int main()
 {
-	printf("-----MEASURING HPS-to_FPGA BRIDGES SPEED IN BAREMETAL----\n\r\r");
+	printf("---MEASURING HPS-FPGA BRIDGES SPEED IN BAREMETAL WITH DMA--\n\r\r");
 	#ifdef ON_CHIP_RAM_ON_LIGHTWEIGHT
 		printf("TESTING ON_CHIP_RAM_ON_LIGHTWEIGHT\n\r");
 	#endif //ON_CHIP_RAM_ON_LIGHTWEIGHT
@@ -46,6 +46,8 @@ int main()
 	#ifdef ON_CHIP_RAM_ON_HFBRIDGE128
 		printf("TESTING ON_CHIP_RAM_ON_HFBRIDGE128\n\r");
 	#endif //ON_CHIP_RAM_ON_HFBRIDGE128
+
+	printf("Each measurement is repeated %d times\n\r", REP_TESTS);
 
 	//------------------------VARIABLES INSTANTIATION-----------------------//
 	//-------------Common variables------------//
