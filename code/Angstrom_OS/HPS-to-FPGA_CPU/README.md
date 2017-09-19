@@ -31,7 +31,7 @@ Description of the code
 configuration.h permits to control the default behaviour of the program:
 * Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width.
 
-#### main.c:
+#### time_measurements_CPU.c:
 First of all the application decides if the results will be printed on screen or in a file. In case the results should go to the screen the user has to call the program just typing its name. In case the user wants results to be printed in file the name of the file should be added as extra argument when calling the program.
 
 Afterwards the program generates a virtual address to access FPGA from application space, using mmap(). This is needed to access hardware addresses from a user space application (that uses virtual addresses). mmap makes a mapping of the hardware addresses to some equivalent virtual addresses we can use from within the application. By default the address mapped is the position of the OCR hanging from HPS-FPGA bridge with 128-bit(the default in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K) too). If the bridge size is changed to 64-bit or 32-bit or if the memory is mapped to Lightweight bridge is changed ON_CHIP_RAM_ON_HFBRIDGE128 should be commented in configuration.h and its corresponding macro should be uncommented. If the address of the memory in Qsys is changed the system headers of the bridge modified should be updated in the [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers). See [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K)to know how to generate the system headers after compiling a FPGA project. To ease the test of the program all FPGA projects, varying bridge type and size and FPGA frequency are made available in [FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf). If these hardware projects are used no modification to [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers) will be needed.
@@ -51,9 +51,9 @@ Lastly the program frees the mapping and the file to save measurements (if used)
 
 Contents in the folder
 ----------------------
-* time_measurements_CPU: all code of the program previously explained is here.
-* Makefile: describes compilation process.
 * configuration.h
+* time_measurements_CPU.c
+* Makefile: describes compilation process.
 
 Compilation
 -----------
