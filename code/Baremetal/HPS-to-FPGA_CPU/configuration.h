@@ -113,6 +113,7 @@ typedef uint64_t  uint128_soc;
 #define REP_TESTS 100 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
-//#define UP_FORLOOP //Uncomment if you want to measure transfers using for loop (direct method)
+//Uncomment if you want to measure transfers using for loop (direct method)
+//#define UP_FORLOOP
 
 #endif //__CONFIGURATION_H__
