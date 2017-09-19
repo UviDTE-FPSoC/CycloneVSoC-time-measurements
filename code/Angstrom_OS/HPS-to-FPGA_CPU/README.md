@@ -3,10 +3,10 @@ Angstrom_OS/HPS-to-FPGA_CPU
 
 Introduction
 -------------
-This application measures the data transfer rate between HPS and FPGA using CPU with memcpy or for loops methods to do the transfers. Time measurement is done by Performance Monitoring Unit (PMU) because it is the most precise timer in the system, and repeated again using time.h library functions to compare with PMU measurements and asses that PMU is measuring correctly.
+This application measures the data transfer rate between HPS and FPGA using CPU with memcpy or *for loop* method to do the transfers. Time measurement is done by Performance Monitoring Unit (PMU) because it is the most precise timer in the system, and repeated again using time.h library functions to compare with PMU measurements and asses that PMU is measuring correctly.
 
 The following parameters affecting the transfer speed are studied:
-* Method: memcpy() function or "dir" method copy using for loop copying word by word data.
+* Method: memcpy() function or *for loop* method are used. *For loop* method consists on using a for loop copying one word per loop iteration.
 * Transfer direction: WR (read from processor and WRITE to FPGA) and RD (READ from FPGA and write in processor memory).
 * Transfer size: From 2B to 2MB in 2x steps.
 

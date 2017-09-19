@@ -17,7 +17,7 @@ Transfers are performed from processor memories (cache/SDRAM) and an On-Chip RAM
 The memory in the FPGA has the following characteristics:
 * Implemented using embedded 10kB memory blocks.
 * Size = 256kB, the maximum power of two feasible in DE1-SoC board.
-* Connected by default to position 0 of the HPS-FPGA bridge (starts at 0xC0000000). The memory can be changed easyly to hang from the Lightweight HPS-FPGA bridge using Qsys.
+* Connected by default to position 0 of the HPS-FPGA bridge (starts at 0xC0000000). The memory can be changed easly to hang from the Lightweight HPS-FPGA bridge using Qsys.
 * Data_size is 128-bit by default. When hanging from the HPS-FPGA bridge, the size of the bridge and/or this memory can be changed to 64-bit or 32-bit. When hanging from the Lightweight HPS-FPGA bridge the size should be 32-bit.
 
 Each transfer is repeated by default 100 times and the following statistics are calculated for each combination of the aforementioned parameters:
@@ -34,7 +34,7 @@ Description of the code
 #### configuration.h:
 configuration.h permits to control the default behaviour of the program:
 * Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width. configuration.h obtains hardware information for each bridge and size from [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers).
-* Cache features that are activated can be controlled by the CACHE_CONFIG macro that can be defined as a number betwee 0 and 13 with the following meanings. Each number adds a feature to the previous state so adding the effect of each feature can be easily studied:
+* Cache features that are activated can be controlled by the CACHE_CONFIG macro that can be defined as a number between 0 and 13 with the following meanings. Each number adds a feature to the previous state so adding the effect of each feature can be easily studied:
 	* 0 no cache no MMU 
 	Basic config and optimizations:
 	* 1 enable MMU
