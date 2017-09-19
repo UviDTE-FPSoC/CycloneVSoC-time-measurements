@@ -1,5 +1,5 @@
-HPS-to-FPGA_PL330DMAC
-=====================
+Angstrom_OS/HPS-to-FPGA_PL330DMAC
+=================================
 
 Introduction
 -------------
@@ -26,14 +26,17 @@ Each transfer is repeated by default 100 times and the following statistics are 
 
 Results can be printed in screen or can be directly saved into a file.
 
-configuration.h permits to control the default behaviour of the program: 
+Description of the code
+------------------------
+
+#### configuration.h:
+configuration.h permits to control the default behaviour of the program:
 * Selecting between  ON_CHIP_RAM_ON_LIGHTWEIGHT ON_CHIP_RAM_ON_HFBRIDGE the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge.
 * Uncommenting EN_LOCKDOWN_STUDY the lockdown by master study can be activated. Regular measurements are repeated changing lockdown by master settings of the L2 8-way associative cache controller. Regular configuration; configurations locking 1, 4 and 7 ways for CPU; and ways locking 1, 4 and 7 ways for CPU and the rest for ACP are tested. When EN_LOCKDOWN_STUDY is activated, uncommenting LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA the CPU and ACP is locked after the transfer data is generated and located in cache without locking. Otherwise the CPU/ACP are locked before data is generated. This study tries to measure the improvement that can be achieved on DMA transfers using ACP when applying lockdown by master.
 * Uncommenting EN_SDRAMC_STUDY the SDRAM port priority and weight is activated. Regular measurements are repeated changing settings of the mmpriority, mpweight_0_4 and mpweight_1_4 (see Cyclone V SoC Handbook for more information on these registers). The following combinations are performed: default configuration when starting up the syste; give to CPUs port and L3-to-SDRAM controller port same priority (using mmpriority) giving to L3-to-SDRAM controller port 2, 4, 8 and 16 times more bandwidth (using mpweight_0_4 and mpweight_1_4); give to  L3-to-SDRAM controller port more priority than CPUs port so it is always accessed when both ports access simultaneously to data. This study tries to measure the improvement that can be achieved on DMA transfers using L3-to-SDRAM port when giving more bandwidth or priority to it.
 * Uncommenting GENERATE_DUMMY_TRAFFIC_IN_CACHE traffic can be added to chache and main SDRAM memory to affect the DMA transfers and see more clearly the effects of lockdown by master and sdram controller port priority and bandwidth when EN_LOCKDOWN_STUDY or EN_SDRAMC_STUDY are enabled, respectively. The application creates a thread at the beginning of the application that continuously reads and writes the memory in a spam of 2MB to pollute both cache and main SDRAM memory.
 
-Description of the code
-------------------------
+#### main.c:
 First of all the application decides if the results will be printed on screen or in a file. In case the results should go to the screen the user has to call the program just typing the name. In case the user wants results to be printed in file the name of the file should be added as extra argument when calling the program.
 
 After that the PMU is initialized as a timer. PMU is the more precise way to measure time in Cyclone V SoC. Visit this [basic example](https://github.com/robertofem/CycloneVSoC-examples/tree/master/Baremetal-applications/Second_counter_PMU) to learn more about it. It is initialized with a base frequency of 800 MHz (the frequency of the CPU configured in the FPGA hardware project) and freq divider = 1 so the measurement is most precise possible. After initialization empty measuremnts (measuring no code) are done to obtain the PMU measurement overhead. This overhead will be substracted to all measuremnts later on to obtain a more precise measurement.

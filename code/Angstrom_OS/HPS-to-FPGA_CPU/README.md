@@ -1,12 +1,12 @@
-HPS-to-FPGA_CPU
-================
+Angstrom_OS/HPS-to-FPGA_CPU
+===========================
 
 Introduction
 -------------
 This application measures the data transfer rate between HPS and FPGA using CPU with memcpy or for loops methods to do the transfers. Time measurement is done by Performance Monitoring Unit (PMU) because it is the most precise timer in the system, and repeated again using time.h library functions to compare with PMU measurements and asses that PMU is measuring correctly.
 
 The following parameters affecting the transfer speed are studied:
-* Method: memcpy() function or "dir" method copy using for loop copying word by word data. 
+* Method: memcpy() function or "dir" method copy using for loop copying word by word data.
 * Transfer direction: WR (read from processor and WRITE to FPGA) and RD (READ from FPGA and write in processor memory).
 * Transfer size: From 2B to 2MB in 2x steps.
 
@@ -25,18 +25,20 @@ Each transfer is repeated by default 100 times and the following statistics are 
 
 Results can be printed in screen or can be directly saved into a file.
 
-configuration.h permits to control the default behaviour of the program: 
-* Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width.
-
 Description of the code
 ------------------------
+#### configuration.h:
+configuration.h permits to control the default behaviour of the program:
+* Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width.
+
+#### main.c:
 First of all the application decides if the results will be printed on screen or in a file. In case the results should go to the screen the user has to call the program just typing its name. In case the user wants results to be printed in file the name of the file should be added as extra argument when calling the program.
 
 Afterwards the program generates a virtual address to access FPGA from application space, using mmap(). This is needed to access hardware addresses from a user space application (that uses virtual addresses). mmap makes a mapping of the hardware addresses to some equivalent virtual addresses we can use from within the application. By default the address mapped is the position of the OCR hanging from HPS-FPGA bridge with 128-bit(the default in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K) too). If the bridge size is changed to 64-bit or 32-bit or if the memory is mapped to Lightweight bridge is changed ON_CHIP_RAM_ON_HFBRIDGE128 should be commented in configuration.h and its corresponding macro should be uncommented. If the address of the memory in Qsys is changed the system headers of the bridge modified should be updated in the [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers). See [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K)to know how to generate the system headers after compiling a FPGA project. To ease the test of the program all FPGA projects, varying bridge type and size and FPGA frequency are made available in [FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf). If these hardware projects are used no modification to [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers) will be needed.
 
 Afterwards the FPGA OCR is checked to ensure that the processor has access to all of it. If access is possible the FPGA OCR content is cleared (0s are written).
 
-First set of measurements are performed using time.h library to measure time. CLOCK_REALTIME is used since provides the smallest resolution (1ns) and error (around 240 ns) among all OS timers. After initialization empty measuremnts (measuring no code) are done to obtain the CLOCK_REALTIME measurement overhead (720ns). This overhead will be substracted to all measuremnts later on to obtain a more precise measurement. 
+First set of measurements are performed using time.h library to measure time. CLOCK_REALTIME is used since provides the smallest resolution (1ns) and error (around 240 ns) among all OS timers. After initialization empty measuremnts (measuring no code) are done to obtain the CLOCK_REALTIME measurement overhead (720ns). This overhead will be substracted to all measuremnts later on to obtain a more precise measurement.
 
 For each combination of data sizes, 100 measurements on writing the FPGA (WR) and reading the FPGA (RD) are done. In the case the FPGA OCR size (256KB) is smaller than transfer size (2B to 2MB) transfer are repeated until the total desired transfer size is completed (address of main memory keeps growing to see cache effects while address in FPGA is reset). When the 100 measuremnts are done, mean, max, min and variance is calculated and printed in screen or file. First measuremnts with memcpy() function are done. memcpy() is a function from standard library to efficiently copy data between parts of the system using CPU. Secondly transfers are performed with the for loop method. In this case a for loop is created and data is copied word by word (one word per loop is copied). For loop resulted much slower than memcpy() so always use memcpy().
 
