@@ -30,8 +30,10 @@ Table of contents of this README file:
 The repository is organized as follows:
 * **This README** file contains explanation of the experiments. For each experiment a summary of the results and the more important plots are provided. The reader can also find links to the code used for the experiment and to the full set of numeric results.
 * **code/**: contains all programs used to do the experiments. A README file explaining the code and how to compile and test each program is provided inside the folder of each program.
-* **figures/**: contains the figures used in the README files in this repository.
+* **fpga-hardware**: Quartus/Qsys hardware projects for the FPGA, used to perform the experiments.
 * **results/**: contains all numeric results for the experiments.
+* **figures/**: contains the figures used in the README files in this repository.
+
 
 To make use of this repository download it as a zip or install git in your computer and download it using:
 ```bash
