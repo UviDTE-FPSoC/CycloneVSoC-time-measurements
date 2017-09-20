@@ -17,7 +17,7 @@ Reader may be interested in our other repositories regarding FPSoCs, hosted the 
 
 Table of contents of this README file:
 
-1. [Repository Contents](#1---cyclone-v-soc-overview)
+1. [Repository Contents](#1---repository-contents)
 2. [Cyclone V SoC Overview](#2---cyclone-v-soc-overview)
 3. [Setting up Cache in Baremetal](#3---setting-up-cache-in-baremetal)
 4. [HPS-to-FPGA - Main Experiments](#4---hps-to-fpga---main-experiments)
