@@ -169,7 +169,6 @@ The following figures permit to graphically visualize the difference in performa
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-CPU.png" width="900" align="middle" alt="Bridges-analysis-CPU" />
 </p>
-
 <p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in Angstrom OS programs moving data with DMA </b></p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-angstrom.png" width="900" align="middle" alt="Bridges-analysis-DMA-angstrom" />
@@ -179,8 +178,9 @@ The following figures permit to graphically visualize the difference in performa
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-baremetal.png" width="900" align="middle" alt="Bridges-analysis-DMA-baremetal" />
 </p>
 HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF128 performance for most of experiments. However LW32 is very much slower than the others. As a summary of bridge perfomance the following table was created. Each value on the table represents the mean value for all data size, for a combination of the rest parameters.
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-table.png" width="500" align="middle" alt="Bridges-analysis-table" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-table.png" width="500" align="middle" alt="Bridges-analysis-table" />
 </p>
 
 As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
