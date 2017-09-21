@@ -147,8 +147,10 @@ Tests are repeated 100 times (automatically done by the application) and mean va
 ### General Analysis of the Results
 The full set of numeric values for the main experiments is in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx.
 
-The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and
-DMAC) depend on implementation and data size. The following figure shows the transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz (maximum frequency where all experiments run, as analized later).
+The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies.
+
+**The following figure shows the most important results: transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz**. 
+
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/HF128-150MHz.png" width="800" align="middle" alt="Main-results" />
@@ -160,10 +162,21 @@ As explained before, cache enablement has a negligible effect in DMA transfers t
 
 ### Bridge Type Analysis
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-CPU.png" width="900" align="middle" alt="Bridges-analysis-CPU" />
+</p>
+
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-table.png" width="500" align="middle" alt="Main-results" />
+</p>
+
 
 ### FPGA Frequency Analysis
 ### OS vs Baremetal
 ### Cache Effects
+### CPU vs DMA
+### DMA Microcode Preparation Time
 ### Board Comparison
 
 
