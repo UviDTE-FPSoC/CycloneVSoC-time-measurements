@@ -3,7 +3,7 @@ CycloneVSoC-time-measurements
 ```diff
 - Message to reviewers: This repository is under construction. It will be totally finished on Friday Sepember 22th.
 ```
-Programmable Systems-on-Chip (FPSoCs) are heterogeneous reconfigurable platforms consisting of hard processors and FPGA fabric. Authors have been working with FPSoCs for a long time, and have thoroughly searched many times information regarding the best way to inteconnect processor and FPGA. As a matter of fact, there is little information available on the topic, and even that very little is divided in pieces posted on different, unrelated websites. This repository contains all our experiments regarding the processor-FPGA transfer rates in Cyclone V SoC devices, a very important family of FPSoCs. It also serves as support to the paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"*. Since data and figures were too many to fit in a single article all data is provided in this repository. The code used for the experiments is also provided.
+Programmable Systems-on-Chip (FPSoCs) are heterogeneous reconfigurable platforms consisting of hard processors and FPGA fabric. Authors have been working with FPSoCs for a long time, and have thoroughly searched many times information regarding the best way to inteconnect processor and FPGA. As a matter of fact, there is little information available on the topic, and even that very little is divided in pieces posted on different, unrelated websites. This repository contains our experiments regarding the processor-FPGA transfer rates in Cyclone V SoC devices, a very important family of FPSoCs. It also serves as support to the paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"*. Since data and figures were too many to fit in a single article all data is provided in this repository. The code used for the experiments is also provided.
 
 Feel free to use and share all contents in this repository. Please, remember to reference our paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"* if you make any publication that uses our work. 
 The repository license is GPL v3.0.
@@ -142,15 +142,17 @@ Transfer rates between HPS and FPGA when HPS is the master are measured for diff
 * FPGA frequency from 50 to 200MHz, in 50MHz steps. For tests failing at 200MHz, the frequency was reduced in 20MHz steps until correct operation was achieved. Compiled files for the different FPGA frequencies are availabe at [fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf).
 * Two DE1-SoC boards have been tested.
 
+The FPGA-OCR data bus size is always the same as the bridge where it is connected.
+
 Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
+
 
 ### General Analysis of the Results
 The full set of numeric values for the main experiments is in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx.
 
-The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies.
+The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies. The following figure shows the most important results: 
 
-**The following figure shows the most important results: transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz**. 
-
+<p style="text-align: center;"> **Transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz**</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/HF128-150MHz.png" width="800" align="middle" alt="Main-results" />
@@ -161,16 +163,26 @@ For all plots at small data size transfer rate grows with data size because the 
 As explained before, cache enablement has a negligible effect in DMA transfers through SDRAMC in baremetal implementations. This can be noticed in the figure, where plots 10 and 14 represent DMA WRand RD operations, respectively, through SDRAMC with both caches off and on.
 
 ### Bridge Type Analysis
+The following figures permit to graphically visualize the difference in performance between all bridges connecting HPS and FPGA where the HPS acts as master: High performance configured as 128-, 64- or 32-bit and the Lightweight 32-bit.
 
+<p style="text-align: center;"> **Comparison of HF128, HF64, HF32 and LW32 in programs moving data with CPU**</p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-CPU.png" width="900" align="middle" alt="Bridges-analysis-CPU" />
 </p>
 
-
+<p style="text-align: center;"> **Comparison of HF128, HF64, HF32 and LW32 in Angstrom OS programs moving data with DMA**</p>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-table.png" width="500" align="middle" alt="Main-results" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-angstrom.png" width="900" align="middle" alt="Bridges-analysis-DMA-angstrom" />
 </p>
 
+HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF128 performance for most of experiments. However LW32 is very much slower than the others. As a summary of bridge perfomance the following table was created. Each value on the table represents the mean value for all data size, for a combination of the rest parameters.
+
+<p style="text-align: center;"> **Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DMA**</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-baremetal.png" width="900" align="middle" alt="Bridges-analysis-DMA-baremetal" />
+</p>
+
+As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
 
 ### FPGA Frequency Analysis
 ### OS vs Baremetal
