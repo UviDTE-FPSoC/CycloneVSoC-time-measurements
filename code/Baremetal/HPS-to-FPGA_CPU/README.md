@@ -10,7 +10,7 @@ The following parameters affecting the transfer speed are studied:
 * Transfer direction: WR (read from processor and WRITE to FPGA) and RD (READ from FPGA and write in processor memory).
 * Transfer size: From 2B to 2MB in 2x steps.
 
-Transfers are performed from processor memories (cache/SDRAM) and an On-CHip RAM (OCR) in the FPGA. The FPGA hardware project used is available in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K).
+Transfers are performed from processor memories (cache/SDRAM) and an On-CHip RAM (OCR) in the FPGA. The FPGA hardware project used is available in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K).
 The memory in the FPGA has the following characteristics:
 * Implemented using embedded 10kB memory blocks.
 * Size = 256kB, the maximum power of two feasible in DE1-SoC board.
@@ -32,7 +32,7 @@ Description of the code
 configuration.h permits to control the default behaviour of the program:
 * Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width. configuration.h obtains hardware information for each bridge and size from [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers).
 * Cache features that are activated can be controlled by the CACHE_CONFIG macro that can be defined as a number between 0 and 13 with the following meanings. Each number adds a feature to the previous state so adding the effect of each feature can be easily studied:
-	* 0 no cache no MMU 
+	* 0 no cache no MMU
 	Basic config and optimizations:
 	* 1 enable MMU
 	* 2 do 1 and initialize L2C
@@ -47,7 +47,7 @@ configuration.h permits to control the default behaviour of the program:
 	* 10 do 9 and enable write full line zeros
 	* 11 do 10 and enable speculative linefills of L2 cache
 	* 12 do 11 and enable early BRESP
-	* 13 do 12 and store_buffer_limitation 
+	* 13 do 12 and store_buffer_limitation
 
 * By default only memcpy() tests are done. Uncommenting the macro UP_FORLOOP the for loop experiments can be performed after the memcpy() ones. The for_loop is very much slow than the memcpy() one and it is rarely needed. Thats why by default it is not performed.
 
@@ -80,7 +80,7 @@ This compilation process was tested with both *Altera SoC EDS v14.1* and *Intel 
 The compilation process generates two files:
 * baremetalapp.bin: to load the baremetal program from u-boot
 * baremetalapp.bin.img: to load the baremetal program from preloader
-    
+
 How to test
 -----------
 In the following folder there is an example on how to run baremetal examples available in this repository:

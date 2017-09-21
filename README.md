@@ -66,7 +66,7 @@ Interconnection resources between the HPS and the FPGA fabric can be divided in 
 
 3 - Setting up Cache in Baremetal
 ---------------------------------
-#### Introduction
+### Introduction
 To perform the experiments we used Angstrom Operating System and Baremetal (no OS) implementations. When using OS it automatically setups the cache for us. However, when using Baremetal, regardless of booting with preloader or u-boot (see [SD-baremetal](https://github.com/UviDTE-FPSoC/CycloneVSoC-examples/tree/master/SD-baremetal) to learn more about baremetal booting) the caches start up disabled. Luckily, [Legup](http://legup.eecg.utoronto.ca/) provide [functions to switch on MMU, L1 and L2 caches, and apply most of the available optimizations](http://legup.eecg.utoronto.ca/wiki/doku.php?id=using_arm_caches) in arm_cache.h and arm_cache.s files. Moreover they tested the performance of each optimization in some benchmark programs. We used Legup-up files and applied the following change that was needed for our purpose of moving data between processor and FPGA:
 
 * @L1_NORMAL_111_11 constant was changed from its original value 0x00007c0e to 0x00017c0e. This change sets S bit in table descriptors definyng normal memory region attributes, making normal memory shareable (coherent). This change allows coherent accesses through Aceleration Coherency Port (ACP).
@@ -94,7 +94,7 @@ This produced the [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-t
 
 Since each level is equal to the previous just adding a single feature, the effect of adding each feature can be easily  identified.
 
-#### Explanation of the Experiments
+### Explanation of the Experiments
 Using the [code/Baremetal/HPS-to-FPGA_CPU](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Baremetal/HPS-to-FPGA_CPU) program we measured the transfer time between the CPU and FPGA for the different parameters:
 * Method: memcpy() function is used to perform the transfer.
 * Transfer direction: WR (read from processor and WRITE to FPGA) and RD (READ from FPGA and write in processor memory). The program automatically does that.
@@ -103,7 +103,7 @@ Using the [code/Baremetal/HPS-to-FPGA_CPU](https://github.com/UviDTE-FPSoC/Cyclo
 
 After running the 14 programs results are saved into a file and plotted.
 
-#### Analysis of the Results
+### Analysis of the Results
 All numeric results from this experiments are in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_baremetal_cache.xlsx. The figure below depicts the mean transfer speed (in MB/s) of data sizes between 32B and 2MB (small data sizes are discarded because their transfer speed is very different to the higher ones and distorted the plots).
 
 <p align="center">
@@ -122,10 +122,10 @@ We used cache configuration 9 in our Baremetal programs.
 
 4 - HPS-to-FPGA - Main Experiments
 ----------------------------------
-#### Introduction
+### Introduction
 These experiments represent the core of HPS-FPGA transfer rate measurements when using the HPS as master to move data. They provide a good overview of the device behaviour. Experiments are performed using Angstrom Operating System and Baremetal. Baremetal measurements provide the fastest data rates that can be achieved in the device. These data can be compared with transfer speed achieved when using OS to perceive its effect on transfers. All design parameters that have been identified to influence transfer rate are considered, with the exception of processor workload, which is kept to a minimum. The reason for this is that it is not practically feasible to consider the many different combination of tasks that the processors may be executing in real applications. Taking into account just a subset of those would result in partial and likely misleading conclusions, difficult (if at all possible) to be extrapolated to specific applications. Therefore, the results of the experiments presented in next section represent the optimal performance under each tested scenario, which is reduced as processor workload increases.
 
-#### Explanation of the Experiments
+### Explanation of the Experiments
 Transfer rates between HPS and FPGA when HPS is the master are measured for different combinations of values of the following parameters:
 
 * OS or baremetal implementation:
@@ -165,26 +165,26 @@ system and it can be used in both Angstrom and baremetal
 implementations.
 
 
-#### General Analysis of the Results
+### General Analysis of the Results
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/HF128-150MHz.png" width="800" align="middle" alt="Main-results" />
 </p>
-#### Bridge Type Analysis
-#### FPGA Frequency Analysis
-#### OS vs Baremetal
-#### Cache Effects
-#### Board Comparison
+### Bridge Type Analysis
+### FPGA Frequency Analysis
+### OS vs Baremetal
+### Cache Effects
+### Board Comparison
 
 
 5 - HPS-to-FPGA - L2 Lockdown by Master Experiments
 ---------------------------------------------------
-#### Introduction
-#### Explanation of the Experiments
-#### Analysis of the Results
+### Introduction
+### Explanation of the Experiments
+### Analysis of the Results
 
 
 6 - HPS-to-FPGA - SDRAM Controller Experiments
 ----------------------------------------------
-#### Introduction
-#### Explanation of the Experiments
-#### Analysis of the Results
+### Introduction
+### Explanation of the Experiments
+### Analysis of the Results

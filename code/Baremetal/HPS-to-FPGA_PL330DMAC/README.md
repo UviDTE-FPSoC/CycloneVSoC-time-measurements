@@ -13,7 +13,7 @@ The following parameters affecting the transfer speed are studied:
 * Coherency: DMAC accesses HPS memories through ACP (coherent access) when the cache memory is ON and through the L3-to-SDRAMC port when cache is off.
 * DMA initialization time: tests are repeated with or without including the preparation of the DMAC microcode. DMAC microcode can be generated beforehand for lots of applications reducing transfer time.
 
-Transfers are performed from processor memories (cache/SDRAM) and an On-Chip RAM (OCR) in the FPGA. The FPGA hardware project used is available in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K).
+Transfers are performed from processor memories (cache/SDRAM) and an On-Chip RAM (OCR) in the FPGA. The FPGA hardware project used is available in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K).
 The memory in the FPGA has the following characteristics:
 * Implemented using embedded 10kB memory blocks.
 * Size = 256kB, the maximum power of two feasible in DE1-SoC board.
@@ -35,7 +35,7 @@ Description of the code
 configuration.h permits to control the default behaviour of the program:
 * Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width. configuration.h obtains hardware information for each bridge and size from [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers).
 * Cache features that are activated can be controlled by the CACHE_CONFIG macro that can be defined as a number between 0 and 13 with the following meanings. Each number adds a feature to the previous state so adding the effect of each feature can be easily studied:
-	* 0 no cache no MMU 
+	* 0 no cache no MMU
 	Basic config and optimizations:
 	* 1 enable MMU
 	* 2 do 1 and initialize L2C
@@ -50,7 +50,7 @@ configuration.h permits to control the default behaviour of the program:
 	* 10 do 9 and enable write full line zeros
 	* 11 do 10 and enable speculative linefills of L2 cache
 	* 12 do 11 and enable early BRESP
-	* 13 do 12 and store_buffer_limitation 
+	* 13 do 12 and store_buffer_limitation
 * Uncommenting EN_LOCKDOWN_STUDY the lockdown by master study can be activated. Regular measurements are repeated changing lockdown by master settings of the L2 8-way associative cache controller. Regular configuration; configurations locking 1, 4 and 7 ways for CPU; and ways locking 1, 4 and 7 ways for CPU and the rest for ACP are tested. When EN_LOCKDOWN_STUDY is activated, uncommenting LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA the CPU and ACP is locked after the transfer data is generated and located in cache without locking. Otherwise the CPU/ACP are locked before data is generated. This study tries to measure the improvement that can be achieved on DMA transfers using ACP when applying lockdown by master.
 * Uncommenting EN_SDRAMC_STUDY the SDRAM port priority and weight is activated. Regular measurements are repeated changing settings of the mmpriority, mpweight_0_4 and mpweight_1_4 (see Cyclone V SoC Handbook for more information on these registers). The following combinations are performed: default configuration when starting up the syste; give to CPUs port and L3-to-SDRAM controller port same priority (using mmpriority) giving to L3-to-SDRAM controller port 2, 4, 8 and 16 times more bandwidth (using mpweight_0_4 and mpweight_1_4); give to  L3-to-SDRAM controller port more priority than CPUs port so it is always accessed when both ports access simultaneously to data. This study tries to measure the improvement that can be achieved on DMA transfers using L3-to-SDRAM port when giving more bandwidth or priority to it.
 * Uncommenting GENERATE_DUMMY_TRAFFIC_IN_CACHE traffic can be added to chache and main SDRAM memory to affect the DMA transfers and see more clearly the effects of lockdown by master and sdram controller port priority and bandwidth when EN_LOCKDOWN_STUDY or EN_SDRAMC_STUDY are enabled, respectively. To generate the traffic, in the while loop where the application waits for the DMA controller to finish the transfer, reads and writes to/from memory take place in a span of 2MB.
@@ -79,7 +79,7 @@ Contents in the folder
 ----------------------
 
 * configuration.h
-* main.c 
+* main.c
 * alt_dma_modified.c  and alt_dma_modified.h describe the DMAC control functions. The original alt_dma.c from hwlib was modified. The changes are:
     * ALT_DMA_CCR_OPT_SC_DEFAULT was changed by ALT_DMA_RC_ON = 0x00003800 in alt_dma.c. ALT_DMA_CCR_OPT_DC_DEFAULT was changed by ALT_DMA_WC_ON =  0x0E000000. These changes make the channel 0 of the DMAC to do cacheable access with its AXI master port.
     * Other change is the split of alt_dma_memory_to_memory() into 2 functions: alt_dma_memory_to_memory_only_prepare_program() and alt_dma_channel_exec(), as explained above.
@@ -99,7 +99,7 @@ This compilation process was tested with both *Altera SoC EDS v14.1* and *Intel 
 The compilation process generates two files:
 * baremetalapp.bin: to load the baremetal program from u-boot
 * baremetalapp.bin.img: to load the baremetal program from preloader
-    
+
 How to test
 -----------
 In the following folder there is an example on how to run baremetal examples available in this repository:
