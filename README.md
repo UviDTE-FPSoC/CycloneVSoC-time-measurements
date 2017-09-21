@@ -101,18 +101,21 @@ Using the [code/Baremetal/HPS-to-FPGA_CPU](https://github.com/UviDTE-FPSoC/Cyclo
 * Transfer size: From 2B to 2MB in 2x steps. The program automatically does that.
 * Cache level: levels 0 to 13 of the cache_configuration(). For each level the macro CACHE_CONFIG is set to one corresponding level and the program recompiled again. Therefore a total of 14 different programs are generated with different cache levels.
 
+Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
+
 After running the 14 programs results are saved into a file and plotted.
 
 ### Analysis of the Results
 All numeric results from this experiments are in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_baremetal_cache.xlsx. The figure below depicts the mean transfer speed (in MB/s) of data sizes between 32B and 2MB (small data sizes are discarded because their transfer speed is very different to the higher ones and distorted the plots).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-baremetal.png" width="500" align="middle" alt="Cache-baremetal" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-baremetal.png" width="600" align="middle" alt="Main-results" />
+</p>
 
 Since every steps adds a single feature the effect of each feature can be identified:
 * Switching on MMU (cache configuration 1) has big effect on transfer speed.
 * Switching on Instruction cache L1 (cache configuration 4) has small effect. Speed is gained because instructions are retrieved faster from memory.
-* Switching on Data cache L1 (cache configuration 6) has a big effect on trasfer. Thats normal because cache allows transfer data to be retrieved or saved by the CPU faster. 
+* Switching on Data cache L1 (cache configuration 6) has a big effect on trasfer. Thats normal because cache allows transfer data to be retrieved or saved by the CPU faster.
 * Switching on the L2 controller (Shared data and instruction L2 cache)(cache configuration 8) has also very big effect.
 
 The rest of the features does not provide a clear advantage. Legup tests found out that Special L2C-310 controller + Cortex A9 optimizations (cache configurations from 9 to 13) provide no advantage for their processing benchmarks. We have found the same conclusions for our data transfer programs.
@@ -132,43 +135,32 @@ Transfer rates between HPS and FPGA when HPS is the master are measured for diff
 	* Angstrom, the default Linux-based OS for Intel FPGA devices and well documented in their [support website](https://rocketboards.org/foswiki/Documentation/AngstromOnSoCFPGA_1#Angstrom_v2013.12) has been used. It is a light OS, well suited for industrial applications.
 	* Baremetal application running in one of the ARM cores.
 * Master starting AXI bus transfers:
-	* CPU: one of the ARM cores controls data transfer.
-	* DMAC: DMAC executes data transfer microcode in HPSOCR, freeing the processor from this task.
-• Bridge. All bridges having HPS as master have been tested: LW32, HF32, HP64 and HP128. The hardware project used is [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K). Compiled files for the different bridges are availabe. 
-• Cache enablement:
-− Caches off. All memory accesses are to external SDRAM.
-− Caches on. Accesses are to L1, L2, or external SDRAM,
-depending on where data are located and the port used.
-• Coherency: DMAC can access HPS memories through ACP
-(coherent access) or directly access external SDRAM
-through the SDRAMC port from L3 (non-coherent access).
-• Data size from 2B to 2MB, in 2x steps.
-• FPGA frequency from 50 to 200MHz, in 50MHz steps. For
-tests failing at 200MHz, the frequency was reduced in
-20MHz steps until correct operation was achieved.
-• Two DE1-SoC boards have been tested.
-Not all possible combinations have been implemented
-because some of them do not make sense or give no
-information. For instance, caches are not switched off when
-using Angstrom and DMAC access through ACP is not tested
-when caches are off.
-C. Software
-Data transfers are controlled by a software program running
-in one of the processors. All programs used to carry out the
-experiments are available in [40].
-To measure transfer speed a clock cycle counter in the
-Performance Monitoring Unit (PMU) is used. PMU is a
-coprocessor close to the ARM cores that can gather data about
-processor and memory operations. It has been chosen because
-it is the most accurate resource available to measure time in the
-system and it can be used in both Angstrom and baremetal
-implementations.
+	* CPU: one of the ARM cores controls data transfer. The program [code/Baremetal/HPS-to-FPGA_CPU](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Baremetal/HPS-to-FPGA_CPU) is used for baremetal and [code/Angstrom_OS/HPS-to-FPGA_CPU](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Angstrom_OS/HPS-to-FPGA_CPU) for Angstrom OS.
+	* DMAC: DMAC executes data transfer microcode in HPSOCR, freeing the processor from this task. The program [code/Baremetal/HPS-to-FPGA_PL330DMAC](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Baremetal/HPS-to-FPGA_PL330DMAC) is used for baremetal and [code/Angstrom_OS/HPS-to-FPGA_PL330DMAC](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Angstrom_OS/HPS-to-FPGA_PL330DMAC) for Angstrom OS.
+* Bridge. All bridges having HPS as master have been tested: LW32, HF32, HP64 and HP128. The hardware project used is [fpga-hardware/DE1-SoC/FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/FPGA-hardware/DE1-SoC/FPGA_OCR_256K). Compiled files for the different bridges are availabe at [fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf).
+* Cache enablement:
+	* Caches off. All memory accesses are to external SDRAM. Caches were not switched off for Angstrom since it does not make much sense. Doing it in baremetal is enough to measure the effect of caches in the execution of transfer rate programs.  To switch ON or OFF the caches set to 9 or 0 the macro CACHE_CONFIG in the configuration.h file of each program.
+	* Caches on. Accesses are to L1, L2, or external SDRAM, depending on where data are located and the port used.
+* Coherency (only applies for DMAC): DMAC can access HPS memories through ACP (coherent access) or directly access external SDRAM through the SDRAMC port from L3 (non-coherent access). In the baremetal tests coherency is automatically changed depending on cache enablement. When cache is OFF non-coherent access is applied (coherent access will be slower because the access would be L3->L2->SDRAM) so it is better to directly do non coherent L3->SDRAM). When cache is ON the access is coherent through ACP. Tests with cache ON and non-coherent access where not performed because they are very similar to those non-coherent with cache OFF. In fact cache ON and non-coherent access will be little faster than non coherent with cache OFF because the few operations done by the CPU will execute faster. We say in plots that non-coherent access with cache off and on are the same. This is conservative and all conclusions derived from plots are therefore valid. In the case of OS the program repeats experiments in coherent and non-coherent way.
+* Preparation of DMA microcode program (only applies for DMAC). In most applications the size of the transfer and the address of the destiny and source buffers is known before the transfer takes place so the DMAC microcode programs can be prepared beforehand (during board start-up and initializations) and its preparation time can be saved when the program is actually running the application-ralated tasks. For both, baremetal and OS the transfer time is measured with and without DMAC microcode preparation time.
+* Data size from 2B to 2MB, in 2x steps. This automatically done by the program that repeats the measurements for every data size.
+* FPGA frequency from 50 to 200MHz, in 50MHz steps. For tests failing at 200MHz, the frequency was reduced in 20MHz steps until correct operation was achieved. Compiled files for the different FPGA frequencies are availabe at [fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf).
+* Two DE1-SoC boards have been tested.
 
+Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
 
 ### General Analysis of the Results
+The full set of numeric values for the main experiments is in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx.
+
+The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and
+DMAC) depend on implementation and data size. The following figure shows the transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz (maximum frequency where all experiments run, as analized later).
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/HF128-150MHz.png" width="800" align="middle" alt="Main-results" />
 </p>
+
+For all plots at small data size transfer rate grows with data size because the initialization time (calling the memcpy() function in CPU plus memcpy() initialization tasks or preparing program in DMA in case of using the DMAC) becomes less compared to the transfer time. Initialization time grows as data transfer grows but much slowly than the time where data is actually being transferred. For intermediate data sizes the transfer rate tends to stabilize because initialization time becomes negligible when compared to the actual transfer. When caches are used, performance decreases for sizes above 32kB (that of L1 caches) and again above 512kB (the size of L2 cache) because of cache misses. After cache effects happen (for bigger data size than 512kB) the transfer rate stabilizes and for data size bigger than 2MB the transfer rate at 2MB is expected. Exceptions are plots 9 and 13 that will decrease a little bit after 2MB before they stabilize.
+
 ### Bridge Type Analysis
 ### FPGA Frequency Analysis
 ### OS vs Baremetal
