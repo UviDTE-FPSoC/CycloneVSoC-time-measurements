@@ -161,7 +161,11 @@ DMAC) depend on implementation and data size. The following figure shows the tra
 
 For all plots at small data size transfer rate grows with data size because the initialization time (calling the memcpy() function in CPU plus memcpy() initialization tasks or preparing program in DMA in case of using the DMAC) becomes less compared to the transfer time. Initialization time grows as data transfer grows but much slowly than the time where data is actually being transferred. For intermediate data sizes the transfer rate tends to stabilize because initialization time becomes negligible when compared to the actual transfer. When caches are used, performance decreases for sizes above 32kB (that of L1 caches) and again above 512kB (the size of L2 cache) because of cache misses. After cache effects happen (for bigger data size than 512kB) the transfer rate stabilizes and for data size bigger than 2MB the transfer rate at 2MB is expected. Exceptions are plots 9 and 13 that will decrease a little bit after 2MB before they stabilize.
 
+As explained before, cache enablement has a negligible effect in DMA transfers through SDRAMC in baremetal implementations. This can be noticed in the figure, where plots 10 and 14 represent DMA WRand RD operations, respectively, through SDRAMC with both caches off and on.
+
 ### Bridge Type Analysis
+
+
 ### FPGA Frequency Analysis
 ### OS vs Baremetal
 ### Cache Effects
