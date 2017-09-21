@@ -165,7 +165,7 @@ As explained before, cache enablement has a negligible effect in DMA transfers t
 ### Bridge Type Analysis
 The following figures permit to graphically visualize the difference in performance between all bridges connecting HPS and FPGA where the HPS acts as master: High performance configured as 128-, 64- or 32-bit and the Lightweight 32-bit.
 
-<p align="justify"> Comparison of HF128, HF64, HF32 and LW32 in programs moving data with CPU</b></p>
+<p align="center"> <b>Comparison of HF128, HF64, HF32 and LW32 in programs moving data with CPU</b></p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-CPU.png" width="900" align="middle" alt="Bridges-analysis-CPU" />
 </p>
