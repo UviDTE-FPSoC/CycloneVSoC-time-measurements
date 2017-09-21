@@ -8,12 +8,7 @@ Programmable Systems-on-Chip (FPSoCs) are heterogeneous reconfigurable platforms
 Feel free to use and share all contents in this repository. Please, remember to reference our paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"* if you make any publication that uses our work. 
 The repository license is GPL v3.0.
 
-Authors belong to the [Electronic Technology Department](http://dteweb.webs.uvigo.es/) or the [University of Vigo](https://uvigo.gal/uvigo_en/index.html). If you have any question regarding the experiments or you find any error in the repository contents pleas contact us at:
-* José Fariña Rodríguez: jfarina@uvigo.es
-* Juan José Rodríguez Andina: jjrdguez@uvigo.es [[Personal Web](http://jjrdguez.webs2.uvigo.es/homepage.html)]
-* Roberto Fernández Molanes: robertofem@uvigo.es [[GitHub](https://github.com/robertofem)]
 
-Reader may be interested in our other repositories regarding FPSoCs, hosted the [UviDTE-FPSoC](https://github.com/UviDTE-FPSoC/) GitHub organization.
 
 Table of contents of this README file:
 
