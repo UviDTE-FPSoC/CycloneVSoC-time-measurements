@@ -240,16 +240,33 @@ The following figure depicts plots #1, #4, #7 and #11 from figure of [General An
 </p>
 
 ### CPU vs DMA
-The following figure depicts plots 
+The following figure depicts plots comparing the CPU method (memcpy function) and DMA method with and without preparation time for HF128 and FPGA frequency equal to 150MHz. As explained above in most applications the DMAC microcode preparation time can be saved because the microcode can be prepared during the initialization phase instead preparing it for every transfer. In the plots legend *DMAC-p+t* means transfer using DMA Controller and measuring both preparation time and actual transfer time; legend *DMAC-t* means transfer using DMA Controller only actual transfer time. As it can be observed the preparation time of the DMAC program is big and it should be performed during initialization of the program when possible.
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA-baremetal" />
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA-angstrom" />
+</p>
+
+The figure shows that at small data sizes the processor performs better than DMA, even when DMAC microcode is prepared before the transfer. Thats because the DMAC does not start inmediately to transfer like the processor. It needs some time to retrieve the microcode from memory and initialize itself. For intermediate and big data sizes DMAC performs better than the processor. The difference is huge when cache is OFF and not so big when cache is ON. The crossing points on 
+
+
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Best-AXI-Master-table.png" width="500" align="middle" alt="Best-AXI-Master-table" />
+</p>
+
+
 ### DMA Microcode Preparation Time
+As commented in the previous chapter the DMAC microcode preparation time represents a big part of a DMA transfer (if it is prepared during the transfer). Substracting the Transfer rates with and without DMA microcode preparation time the preparation time can be obtained. This is represented in the following figures for both cache ON and cache OFF, in nanoseconds (ns) and in percentage of the transfer (when included in it).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/DMAC-ucode-preparation-time.png" width="800" align="middle" alt="DMAC-ucode-preparation-time" />
 </p>
+
+Results show that the DMAC microcode preparation time grows as the data size grow. However in percentage it decreases. For small data sizes (below 2K) represents a 80% of the transfer! After 2kB it tends to decrease stabilizing after 256K around 20%-30% of the transfer time.
 
 ### Board Comparison
 
@@ -279,6 +296,3 @@ The following figure depicts plots
 ### Analysis of the Results
 
 
-
-
-[Gene](#general-analysis-of-the-results)
