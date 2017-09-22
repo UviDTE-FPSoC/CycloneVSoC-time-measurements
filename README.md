@@ -239,19 +239,18 @@ The following figure depicts plots #1, #4, #7 and #11 from figure of [General An
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-effects.png" width="400" align="middle" alt="Cache-effects" />
 </p>
 
-### CPU vs DMA
+### AXI Master (CPU or DMAC)
 The following figure depicts plots comparing the CPU method (memcpy function) and DMA method with and without preparation time for HF128 and FPGA frequency equal to 150MHz. As explained above in most applications the DMAC microcode preparation time can be saved because the microcode can be prepared during the initialization phase instead preparing it for every transfer. In the plots legend *DMAC-p+t* means transfer using DMA Controller and measuring both preparation time and actual transfer time; legend *DMAC-t* means transfer using DMA Controller only actual transfer time. As it can be observed the preparation time of the DMAC program is big and it should be performed during initialization of the program when possible.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA-baremetal" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA-baremetal.png" width="800" align="middle" alt="CPU-vs-DMA-baremetal" />
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA-angstrom" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA-angstrom.png" width="600" align="middle" alt="CPU-vs-DMA-angstrom" />
 </p>
 
 The figure shows that at small data sizes the processor performs better than DMA, even when DMAC microcode is prepared before the transfer. Thats because the DMAC does not start inmediately to transfer like the processor. It needs some time to retrieve the microcode from memory and initialize itself. For intermediate and big data sizes DMAC performs better than the processor. The difference is huge when cache is OFF and not so big when cache is ON. The crossing points on 
-
 
 
 <p align="center">
