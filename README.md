@@ -152,7 +152,7 @@ The full set of numeric values for the main experiments is in [results](https://
 
 The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies. The following figure shows the most important results:
 
-<p style="text-align: center;"> **Transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz**</p>
+<p align="center"> <b>Transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz</b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/HF128-150MHz.png" width="800" align="middle" alt="Main-results" />
@@ -233,13 +233,14 @@ The effect of using an OS with respect to a baremetal implementation for CPU (me
 In the case of DMA the effect of the OS can be analyzed comparing plots #2 and #5 with plots #10 and #14 for ACP access and comparing plots #3 and #6 with plots #10 and #14 for SDRAMC access. In the case of DMAC there is also a big reduction in performance too. The reason is an intermediate copy of data between user space (where the application is running) and kernel space (where the driver performing the DMA transfer is running). This is needed because in user space is not possible to reserve a physically contiguous buffer to be used by DMA controller (except with advanced techniques).
 
 ### Cache Effects
-The following figure depicts the same information contained in the Baremetal figure of [General Analysis of the Results](#general-analysis-of-the-results) but separated by A
+The following figure depicts plots #1, #4, #7 and #11 from figure of [General Analysis of the Results](#general-analysis-of-the-results) to more easily appreciate the influence of cache. Transfer rates for CPU with caches on are 10.9 times faster for WR operations and 4.4 times faster for RD operations than when caches are off. The use of caches has more effect in WR operations than in RD ones because most cache optimizations affect the process of reading from processor memory (WR operations read data from processor memory and write them to FPGA-OCR).
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-effects.png" width="800" align="middle" alt="Cache-effects" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-effects.png" width="400" align="middle" alt="Cache-effects" />
 </p>
 
 ### CPU vs DMA
-
+The following figure depicts plots 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA" />
 </p>
