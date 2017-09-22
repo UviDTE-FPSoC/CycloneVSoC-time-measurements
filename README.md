@@ -191,32 +191,46 @@ HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF12
 
 As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
 
+#### testing
+
+
 ### FPGA Frequency Analysis
 The following table shows the maximum frequency the tests correctly finished.
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-table-max.png" width="500" align="middle" alt="Frequency-analysis-table-max" />
 </p>
 
+The following figures show graphically the effect of FPGA frequency in the transfer rate. Each point is the mean of transfer rate of all data sizes for that experiment. The higher frequency in the graphs change depending on the bridge because the maximum frequency was different depending on the method used and the bridge. 
+
+<p align="center"> <b>Effect of FPGA frequency in transfer rate for CPU</b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="900" align="middle" alt="Frequency-analysis-CPU" />
 </p>
 
-fff
+<p align="center"> <b>Effect of FPGA frequency in transfer rate for DMA in Angstrom</b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-ansgtrom.png" width="800" align="middle" alt="Frequency-analysis-DMA-angstrom" />
 </p>
 
-fjfjk
+<p align="center"> <b>Effect of FPGA frequency in transfer rate for DMA in Baremetal</b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-baremetal.png" width="800" align="middle" alt="Frequency-analysis-DMA-baremetal" />
 </p>
 
-In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in Fig.2. For other frequencies, data in Fig.2 can be corrected with those in Table III (or with the more complete ones available in [40]) to estimate transfer rates. Peripherals implemented in the FPGA must be designed to use bursts and one-cycle transfers to take full advantage of the capabilities of the AXI protocol.
+A summary of the plotted data is done in the following figure for the HF128 bridge. In this table transfer rate when reducing frequency is compared with 150MHz frequency for different combinations of other factors.
 
-dfdf
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-table-reduction.png" width="500" align="middle" alt="Frequency-analysis-table-reduction" />
+</p>
+
+From the figures and table it can be stated that the fastest the method the more the FPGA frequency becomes the bottlenexk and affects the transfer rate. For example DMA is usually faster than CPU and frequency affects more to DMA. Another example is the bridge comparison. LW32 is slower than HF bridges that are much more affected by FPGA frequency than LW32. LW32 transfer rate is almost not affected by FPGA frequency.
+
+In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in the figure in [General Analysis of the Results](#general-analysis-of-the-results). For other frequencies, data in that figure can be corrected with the previous table (transfer rate reduction) or plots presented in this chapter (or user can access to the full data set of numeric results in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx) to estimate transfer rates. Peripherals implemented in the FPGA must be designed to use bursts and one-cycle transfers to take full advantage of the capabilities of the AXI protocol.
+
+
 
 ### OS vs Baremetal
 ### Cache Effects
@@ -237,3 +251,8 @@ dfdf
 ### Introduction
 ### Explanation of the Experiments
 ### Analysis of the Results
+
+
+
+
+[Gene](#general-analysis-of-the-results)
