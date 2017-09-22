@@ -191,9 +191,6 @@ HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF12
 
 As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
 
-#### testing
-
-
 ### FPGA Frequency Analysis
 The following table shows the maximum frequency the tests correctly finished.
 <p align="center">
@@ -230,14 +227,40 @@ From the figures and table it can be stated that the fastest the method the more
 
 In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in the figure in [General Analysis of the Results](#general-analysis-of-the-results). For other frequencies, data in that figure can be corrected with the previous table (transfer rate reduction) or plots presented in this chapter (or user can access to the full data set of numeric results in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx) to estimate transfer rates. Peripherals implemented in the FPGA must be designed to use bursts and one-cycle transfers to take full advantage of the capabilities of the AXI protocol.
 
-
-
 ### OS vs Baremetal
+
+
 ### Cache Effects
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-effects.png" width="800" align="middle" alt="Cache-effects" />
+</p>
+
 ### CPU vs DMA
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/CPU-vs-DMA.png" width="800" align="middle" alt="CPU-vs-DMA" />
+</p>
+
 ### DMA Microcode Preparation Time
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/DMAC-ucode-preparation-time.png" width="800" align="middle" alt="DMAC-ucode-preparation-time" />
+</p>
+
 ### Board Comparison
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Difference-boards-CPU.png" width="800" align="middle" alt="Difference-boards-CPU" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Difference-boards-DMA-angstrom.png" width="800" align="middle" alt="Difference-boards-DMA-angstrom" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Difference-boards-DMA-baremetal.png" width="800" align="middle" alt="Difference-boards-DMA-baremetal" />
+</p>
 
 5 - HPS-to-FPGA - L2 Lockdown by Master Experiments
 ---------------------------------------------------
