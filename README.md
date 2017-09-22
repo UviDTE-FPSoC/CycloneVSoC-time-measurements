@@ -166,17 +166,23 @@ As explained before, cache enablement has a negligible effect in DMA transfers t
 The following figures permit to graphically visualize the difference in performance between all bridges connecting HPS and FPGA where the HPS acts as master: High performance configured as 128-, 64- or 32-bit and the Lightweight 32-bit.
 
 <p align="center"> <b>Comparison of HF128, HF64, HF32 and LW32 in programs moving data with CPU</b></p>
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-CPU.png" width="900" align="middle" alt="Bridges-analysis-CPU" />
 </p>
+
 <p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in Angstrom OS programs moving data with DMA </b></p>
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-angstrom.png" width="900" align="middle" alt="Bridges-analysis-DMA-angstrom" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-angstrom.png" width="800" align="middle" alt="Bridges-analysis-DMA-angstrom" />
 </p>
+
 <p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DM </b></p>
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-baremetal.png" width="900" align="middle" alt="Bridges-analysis-DMA-baremetal" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-baremetal.png" width="800" align="middle" alt="Bridges-analysis-DMA-baremetal" />
 </p>
+
 HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF128 performance for most of experiments. However LW32 is very much slower than the others. As a summary of bridge perfomance the following table was created. Each value on the table represents the mean value for all data size, for a combination of the rest parameters.
 
 <p align="center">
@@ -186,6 +192,8 @@ HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF12
 As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
 
 ### FPGA Frequency Analysis
+
+
 ### OS vs Baremetal
 ### Cache Effects
 ### CPU vs DMA
