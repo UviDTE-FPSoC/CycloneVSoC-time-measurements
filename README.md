@@ -177,7 +177,7 @@ The following figures permit to graphically visualize the difference in performa
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-angstrom.png" width="800" align="middle" alt="Bridges-analysis-DMA-angstrom" />
 </p>
 
-<p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DM </b></p>
+<p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DMA </b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Bridges-analysis-DMA-baremetal.png" width="800" align="middle" alt="Bridges-analysis-DMA-baremetal" />
@@ -193,6 +193,11 @@ As explained in the Explanation of the experiments the FPGA-OCR bus width is set
 
 ### FPGA Frequency Analysis
 
+<p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DM </b></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="800" align="middle" alt="Frequency-analysis-CPU" />
+</p>
 
 ### OS vs Baremetal
 ### Cache Effects
