@@ -228,10 +228,12 @@ From the figures and table it can be stated that the fastest the method the more
 In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in the figure in [General Analysis of the Results](#general-analysis-of-the-results). For other frequencies, data in that figure can be corrected with the previous table (transfer rate reduction) or plots presented in this chapter (or user can access to the full data set of numeric results in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx) to estimate transfer rates. Peripherals implemented in the FPGA must be designed to use bursts and one-cycle transfers to take full advantage of the capabilities of the AXI protocol.
 
 ### OS vs Baremetal
+The effect of using an OS with respect to a baremetal implementation for CPU (memcpy) method can be analyzed by comparing plots #1 and #4 with plots #8 and #12 in the figure in [General Analysis of the Results](#general-analysis-of-the-results). Baremetal results with caches on are 5 times faster for WR operations and 2.64 times faster for RD operations than OS ones. The reason for this are the CPU time used by OS for its background tasks and the cache usage by those tasks, that move transfer data out of cache, creating more cache misses for the transfer.
 
+In the case of DMA the effect of the OS can be analyzed comparing plots #2 and #5 with plots #10 and #14 for ACP access and comparing plots #3 and #6 with plots #10 and #14 for SDRAMC access. In the case of DMAC there is also a big reduction in performance too. The reason is an intermediate copy of data between user space (where the application is running) and kernel space (where the driver performing the DMA transfer is running). This is needed because in user space is not possible to reserve a physically contiguous buffer to be used by DMA controller (except with advanced techniques).
 
 ### Cache Effects
-
+The following figure depicts the same information contained in the Baremetal figure of [General Analysis of the Results](#general-analysis-of-the-results) but separated by A
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Cache-effects.png" width="800" align="middle" alt="Cache-effects" />
 </p>
