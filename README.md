@@ -193,10 +193,18 @@ As explained in the Explanation of the experiments the FPGA-OCR bus width is set
 
 ### FPGA Frequency Analysis
 
-<p align="center"> <b> Comparison of HF128, HF64, HF32 and LW32 in baremetal programs moving data with DM </b></p>
+
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="800" align="middle" alt="Frequency-analysis-CPU" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="900" align="middle" alt="Frequency-analysis-CPU" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-angstrom.png" width="900" align="middle" alt="Frequency-analysis-DMA-angstrom" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-baremetal.png" width="900" align="middle" alt="Frequency-analysis-DMA-baremetal" />
 </p>
 
 ### OS vs Baremetal
