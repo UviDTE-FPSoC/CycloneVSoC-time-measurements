@@ -123,6 +123,8 @@ We used cache configuration 9 in our Baremetal programs.
 ### Introduction
 These experiments represent the core of HPS-FPGA transfer rate measurements when using the HPS as master to move data. They provide a good overview of the device behaviour. Experiments are performed using Angstrom Operating System and Baremetal. Baremetal measurements provide the fastest data rates that can be achieved in the device. These data can be compared with transfer speed achieved when using OS to perceive its effect on transfers. All design parameters that have been identified to influence transfer rate are considered, with the exception of processor workload, which is kept to a minimum. The reason for this is that it is not practically feasible to consider the many different combination of tasks that the processors may be executing in real applications. Taking into account just a subset of those would result in partial and likely misleading conclusions, difficult (if at all possible) to be extrapolated to specific applications. Therefore, the results of the experiments presented in next section represent the optimal performance under each tested scenario, which is reduced as processor workload increases.
 
+To perform transfers to FPGA an On-Chip RAM (FPGA-OCR) was located in the FPGA simulating any possible peripheral to transfer data with. The FPGA-OCR is connected to any of the HPS-to-FPGA bridges (where HPS acts as master), namely HF128, HF64, HF32 and LW32. The characteristics of the hardware project and compiled FPGA configuration files for different FPGA frequencies and bridge connections can be found in [fpga-hardware/DE1-SoC/FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K)
+
 ### Explanation of the Experiments
 Transfer rates between HPS and FPGA when HPS is the master are measured for different combinations of values of the following parameters:
 
@@ -142,15 +144,13 @@ Transfer rates between HPS and FPGA when HPS is the master are measured for diff
 * FPGA frequency from 50 to 200MHz, in 50MHz steps. For tests failing at 200MHz, the frequency was reduced in 20MHz steps until correct operation was achieved. Compiled files for the different FPGA frequencies are availabe at [fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K/compiled_sof_rbf).
 * Two DE1-SoC boards have been tested.
 
-The FPGA-OCR data bus size is always the same as the bridge where it is connected.
-
 Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
 
 
 ### General Analysis of the Results
 The full set of numeric values for the main experiments is in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx.
 
-The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies. The following figure shows the most important results: 
+The effect of some parameters, namely FPGA frequency, cache enablement and bridge type, is independent of the implementation (OS or baremetal) and the data size. The fastest data transfers are always obtained for the HF128 bridge with caches on. In contrast, results for different coherency (DMAC access through ACP or SDRAMC) or AXI masters (CPU and DMAC) depend on implementation and data size. The maximum frequency all experiments run successfully is 150MHz. As commented later in frequency analysis some of them run at higher frequencies. The following figure shows the most important results:
 
 <p style="text-align: center;"> **Transfer rate (in MB/s) of experiments through HF128 bridge with FPGA frequency 150MHz**</p>
 
@@ -192,8 +192,11 @@ HF128 is always faster than the rest of bridges. HF64 and HF32 are close to HF12
 As explained in the Explanation of the experiments the FPGA-OCR bus width is set to be the same as that of the bridge being used in each experiment. As an exception, some extra experiments have been carried out connecting 64- and 32-bit FPGA-OCRs to the HF128 bridge. Surprisingly, performance was 2%-12% faster than when connecting to bridges with the same width, HF64 and HF32. The conclusion is that HF128 configuration should be always used, even for 64- or 32-bit data width peripherals.
 
 ### FPGA Frequency Analysis
+The following table shows the maximum frequency the tests correctly finished.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-table-max.png" width="500" align="middle" alt="Frequency-analysis-table-max" />
+</p>
 
-fdf
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="900" align="middle" alt="Frequency-analysis-CPU" />
@@ -211,11 +214,7 @@ fjfjk
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-baremetal.png" width="800" align="middle" alt="Frequency-analysis-DMA-baremetal" />
 </p>
 
-ffdff
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-table-max.png" width="500" align="middle" alt="Frequency-analysis-table-max" />
-</p>
+In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in Fig.2. For other frequencies, data in Fig.2 can be corrected with those in Table III (or with the more complete ones available in [40]) to estimate transfer rates. Peripherals implemented in the FPGA must be designed to use bursts and one-cycle transfers to take full advantage of the capabilities of the AXI protocol.
 
 dfdf
 
