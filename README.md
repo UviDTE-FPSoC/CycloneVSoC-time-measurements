@@ -193,19 +193,31 @@ As explained in the Explanation of the experiments the FPGA-OCR bus width is set
 
 ### FPGA Frequency Analysis
 
-
+fdf
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-CPU.png" width="900" align="middle" alt="Frequency-analysis-CPU" />
 </p>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-angstrom.png" width="900" align="middle" alt="Frequency-analysis-DMA-angstrom" />
-</p>
+fff
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-baremetal.png" width="900" align="middle" alt="Frequency-analysis-DMA-baremetal" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-ansgtrom.png" width="800" align="middle" alt="Frequency-analysis-DMA-angstrom" />
 </p>
+
+fjfjk
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-DMA-baremetal.png" width="800" align="middle" alt="Frequency-analysis-DMA-baremetal" />
+</p>
+
+ffdff
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Frequency-analysis-table-max.png" width="500" align="middle" alt="Frequency-analysis-table-max" />
+</p>
+
+dfdf
 
 ### OS vs Baremetal
 ### Cache Effects
