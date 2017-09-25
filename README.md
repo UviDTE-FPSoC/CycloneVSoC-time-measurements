@@ -307,9 +307,13 @@ Tests are repeated 100 times (automatically done by the application) and mean va
 ### Analysis of the Results
 All the numeric data set for this experiments is in [/results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_HPS-FPGA_lockdown.xlsx. The following plots show the difference of using some lockdown and not using lockdown at all. When the plot is positive lockdown is faster than not lockdown and viceversa.
 
+<p align="center"> <b>**Lockdown effects in baremetal - HF128 FPGAfreq=150MHz**</b></p>
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Lockdown-baremetal.png" width="800" align="middle" alt="Lockdown-baremetal" />
 </p>
+
+<p align="center"> <b>**Lockdown effects in Angstrom OS - HF128 FPGAfreq=150MHz**</b></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/Lockdown-angstrom.png" width="800" align="middle" alt="Lockdown-angstrom" />
@@ -341,9 +345,11 @@ Using the programs in [code/Angstrom_OS/HPS-to-FPGA_PL330DMAC](https://github.co
 ### Analysis of the Results
 All the numeric data set for this experiments is in [/results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_HPS-FPGA_SDRAMC.xlsx. The following plots show the difference of using some SDRAM special configuration (different weights or priorities) and not using lockdown at all. When the plot is positive SDRAM features are advantageous, otherwise using those features is counterproductive.
 
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/SDRAM-experiments.png" width="800" align="middle" alt="SDRAM-experiments" />
 </p>
+
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/SDRAM-legend.png" width="260" align="middle" alt="SDRAM-legend" />
