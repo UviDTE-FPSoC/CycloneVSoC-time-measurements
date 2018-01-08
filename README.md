@@ -3,10 +3,15 @@ CycloneVSoC-time-measurements
 
 Programmable Systems-on-Chip (FPSoCs) are heterogeneous reconfigurable platforms consisting of hard processors and FPGA fabric. Authors have been working with FPSoCs for a long time, and have thoroughly searched many times information regarding the best way to inteconnect processor and FPGA. As a matter of fact, there is little information available on the topic, and even that very little is divided in pieces posted on different, unrelated websites. This repository contains our experiments regarding the processor-FPGA transfer rates in Cyclone V SoC devices, a very important family of FPSoCs. It also serves as support to the paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"*. Since data and figures were too many to fit in a single article all data is provided in this repository. The code used for the experiments is also provided.
 
-Feel free to use and share all contents in this repository. Please, remember to reference our paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"* if you make any publication that uses our work. 
+Authors belong to the [Electronic Technology Department](http://dteweb.webs.uvigo.es/) of the [University of Vigo](https://uvigo.gal/uvigo_en/index.html). If you have any question regarding the experiments or you find any error in the repository contents please contact us at:
+* José Fariña Rodríguez: jfarina@uvigo.es
+* Juan José Rodríguez Andina: jjrdguez@uvigo.es [[Personal Web](http://jjrdguez.webs2.uvigo.es/homepage.html)]
+* Roberto Fernández Molanes: robertofem@uvigo.es [[GitHub](https://github.com/robertofem)]
+
+Reader may be interested in our other repositories regarding FPSoCs, hosted the [UviDTE-FPSoC](https://github.com/UviDTE-FPSoC/) GitHub organization.
+
+Feel free to use and share all contents in this repository. Please, remember to reference our paper *"Design Guidelines for Efficient Processor-FPGA Communication in Cyclone V FPSoCs"* if you make any publication that uses our work.
 The repository license is GPL v3.0.
-
-
 
 Table of contents of this README file:
 
@@ -66,7 +71,7 @@ To perform the experiments we used Angstrom Operating System and Baremetal (no O
 This produced the [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache)/arm_cache_modified.h and [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache)/arm_cache_modified.s. We used the modified versions to setup cache for our baremetal project. To test the Legup functions and see the effect of each cache and optimization in the performance of the program we created a function called cache_configuration() in files [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache)/cache_high_level_API.h and [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache)/cache_high_level_API.c. This function uses the low level functions in arm_cache_modified and permits to configure cache in a single call. It also avoids errors regarding the order for calling low-level functions. The function parameter to define the cache setup is a single integer between 0 and 13 with the following meanings:
 
 	0: no cache no MMU
-    
+
 	Basic config and optimizations:
 	1: enable MMU
 	2: do 1 and initialize L2C
@@ -76,13 +81,13 @@ This produced the [code/inc/Cache](https://github.com/UviDTE-FPSoC/CycloneVSoC-t
 	6: do 5 and enable L1_D
 	7: do 6 and enable L1 D side prefetch
 	8: do 7 and enable L2C
-    
+
 	Special L2C-310 controller + Cortex A9 optimizations:
 	9: do 8 and enable L2 prefetch hint
 	10: do 9 and enable write full line zeros
 	11: do 10 and enable speculative linefills of L2 cache
 	12: do 11 and enable early BRESP
-	13: do 12 and store_buffer_limitation 
+	13: do 12 and store_buffer_limitation
 
 Since each level is equal to the previous just adding a single feature, the effect each feature can be easily  identified.
 
@@ -228,7 +233,7 @@ A summary of the plotted data is done in the following table for the HF128 bridg
 
 From the figures and table it can be stated that the fastest the method the more the FPGA frequency becomes the bottleneck and affects the transfer rate. For example DMA is usually faster than CPU and frequency affects more to DMA. Another example is the bridge comparison. LW32 is slower than HF bridges that are much more affected by FPGA frequency than LW32. LW32 transfer rate is almost not affected by FPGA frequency.
 
-In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in the figure in [General Analysis of the Results](#general-analysis-of-the-results). For other frequencies, data in that figure can be corrected with the previous table (transfer rate reduction) or plots presented in this chapter (or user can access to the full data set of numeric results in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx) to estimate transfer rates. 
+In a real application, hardware designs in FPGA should be constrained by the target frequency required for the specific application. If the operating frequency achieved is 150MHz, transfer rates should be in the order of magnitude of those presented in the figure in [General Analysis of the Results](#general-analysis-of-the-results). For other frequencies, data in that figure can be corrected with the previous table (transfer rate reduction) or plots presented in this chapter (or user can access to the full data set of numeric results in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_main_time_measurements.xlsx) to estimate transfer rates.
 
 ### OS vs Baremetal
 The effect of using an OS with respect to a baremetal implementation for CPU (memcpy) method can be analyzed by comparing plots #1 and #4 with plots #8 and #12 in the figure in [General Analysis of the Results](#general-analysis-of-the-results). Baremetal results with caches on are 5 times faster for WR operations and 2.64 times faster for RD operations than OS ones. The reason for this are the CPU time used by OS for its background tasks and the cache usage by those tasks, that move transfer data out of cache, creating more cache misses for the transfer.
