@@ -310,7 +310,9 @@ Using the programs in [code/Angstrom_OS/HPS-to-FPGA_PL330DMAC](https://github.co
 Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
 
 ### Analysis of the Results
-All the numeric data set for this experiments is in [/results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_HPS-FPGA_lockdown.xlsx. The following plots show the difference of using some lockdown and not using lockdown at all. When the plot is positive lockdown is faster than not lockdown and viceversa.
+All the numeric data set for this experiments is in [/results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_HPS-FPGA_lockdown.xlsx.
+
+Results show that dummy traffic provokes a reduction of 33% and 28% in transfer rate in baremetal for WR and RD, respectively. In the case of Angstrom the reduction is a 2% for WR and a 30% for RD. However, lockdown has not proven effective in mitigate the dummy traffict effect. The following plots show the difference of using some lockdown and not using lockdown at all. When the plot is positive lockdown is faster than not lockdown and viceversa.
 
 <p align="center"> <b>**Lockdown effects in baremetal - HF128 FPGAfreq=150MHz**</b></p>
 
