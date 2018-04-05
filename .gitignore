@@ -35,3 +35,5 @@ code/**/time_measurements_CPU
 **/fpga-hardware/**/**/*.cdf
 **/fpga-hardware/**/**/*.stp
 **/fpga-hardware/**/**/*.bak
+**/fpga-hardware/**/**/*.h
+**/fpga-hardware/**/**/**/*
