@@ -1,6 +1,8 @@
 #ifndef __CONFIGURATION_H__
 #define __CONFIGURATION_H__
 
+//#define PRINT_TRANSFER_DETAILS
+
 //Select one the size of the bridges
 //#define BRIDGES_32BIT
 //#define BRIDGES_64BIT
@@ -59,18 +61,21 @@
 	#define NUM_OF_DMACS 5
 	#define NUM_OF_FPGA_OCR 5
 	#define TRANSFER_WORD_SIZE FPGA_DMA_WORD_TRANSFERS
+	#define MIN_TRANSFER_SIZE 4 //Bytes
 #endif
 
 #ifdef BRIDGES_64BIT
 	#define NUM_OF_DMACS 5
 	#define NUM_OF_FPGA_OCR 5
 	#define TRANSFER_WORD_SIZE FPGA_DMA_DOUBLEWORD_TRANSFERS
+	#define MIN_TRANSFER_SIZE 8 //Bytes
 #endif
 
 #ifdef BRIDGES_128BIT
 	#define NUM_OF_DMACS 3
 	#define NUM_OF_FPGA_OCR 3
 	#define TRANSFER_WORD_SIZE FPGA_DMA_QUADWORD_TRANSFERS
+	#define MIN_TRANSFER_SIZE 16 //Bytes
 #endif
 
 //----------------------CACHE CONFIGURATION------------------------//
@@ -94,7 +99,7 @@
 13 do 12 and store_buffer_limitation
 */
 
-#define REP_TESTS 10 //repetitions of every time measurement
+#define REP_TESTS 2 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
 //SDRAM CONTROLLER STUDY MACROS

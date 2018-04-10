@@ -109,9 +109,20 @@ int main()
 	{
 		for (j=0; j<number_of_data_sizes; j++)
 		{
-			data_size_dmac[i][j] = max(2, (int)ceil((float)data_size[j]/(float)i));
+			data_size_dmac[i][j] = max( MIN_TRANSFER_SIZE,
+                                  (int)ceil((float)data_size[j]/(float)(i+1)));
 		}
 	}
+
+  for (i=0; i<5; i++)
+	{
+    printf("\n\rdata_size_dmac[%d]=",i);
+		for (j=0; j<number_of_data_sizes; j++)
+		{
+      printf("%d,",data_size_dmac[i][j]);
+		}
+	}
+printf("\n\r");
 
 	//-------------Memory pointers------------//
 	//save address of DMACs in a vector
@@ -160,6 +171,10 @@ int main()
 		printf("ACP ID Mapper configuration was not succesful\n\r");
 		return ALT_E_ERROR;
 	}
+
+  //----CONFIGURING SDRAM CONTROLLER-------//
+  //Remove FPGA-to-SDRAMC ports from reset so FPGA can access SDRAM through them
+  *((unsigned int *)(SDRAMC_REGS + FPGAPORTRST)) = 0xFFFF;
 
 	//-----------INITIALIZATION OF PMU AS TIMER------------//
 	printf("\n\r");
@@ -309,8 +324,7 @@ int main()
     #endif
 
     //Moving data with DMAC (DMAC program preparation is measured)
-	  printf("Data Size,Average DMA_WR,Min DMA_WR,Max DMA_WR,Variance DMA_WR");
-    printf(",Average DMA_RD,Min DMA_RD,Max DMA_RD,Variance DMA_RD\n\r");
+	  printf("Data Size, Average, Min, Max, Variance\n\r");
     for(i=0; i<number_of_data_sizes; i++)//for each data size
 	  {
 		  reset_cumulative( &total_dma, &min_dma, &max_dma, &var_dma);
@@ -324,7 +338,7 @@ int main()
 						(void**)&unalligned_data[j]);
 					if (data[j] == 0)
 				  {
-					  printf("ERROR when calling malloc: Out of memory\n\r");
+					  printf("ERROR when calling malloc: Out of memory \n\r");
 					  return 1;
 				  }
 				}
@@ -335,7 +349,6 @@ int main()
 				else
 					for (j=first_dmac_test; j<=last_dmac_test; j++) data_dmac[j] = data[j];
 
-
 				//clear destiny and fill source
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
@@ -343,14 +356,20 @@ int main()
 							((char*)(DMA_SRC_UP[j]))[l] = (char) i;
 					reset_mem(DMA_DST_UP[j], data_size_dmac[number_dmacs_test-1][i]);
 				}
-
 				//Configure DMACs for their respective transfers
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
+        {
 					fpga_dma_config_transfer(dma_addr[j],
 			                           	DMA_SRC_DMAC[j],
 			                           	DMA_DST_DMAC[j],
 			                           	data_size_dmac[number_dmacs_test-1][i]);
-
+          #ifdef PRINT_TRANSFER_DETAILS
+            printf("dma address=%X\n\r",(unsigned int)dma_addr[j]);
+            printf("src address=%X\n\r",(unsigned int)DMA_SRC_DMAC[j]);
+            printf("dst address=%X\n\r",(unsigned int)DMA_DST_DMAC[j]);
+            printf("data_size=%d\n\r",(int)data_size_dmac[number_dmacs_test-1][i]);
+          #endif
+        }
 			  //----DO THE TRANSFER----//
 			  pmu_counter_reset();
 				//start DMACs
@@ -371,6 +390,7 @@ int main()
 						#endif
 					}
 				}
+
 				overflow = pmu_counter_read_ns(&pmu_counter_ns);
 				if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
         	return 1;}
@@ -414,7 +434,6 @@ int main()
 		#endif
 
 	}//for h
-
 	printf("\n\rData transfer measurements finished!!!!\n\r");
   return 0;
 }
