@@ -334,7 +334,7 @@ printf("\n\r");
 			  //reserve the exact memory of the data size
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-					data[j] = (char*) align_malloc(data_size_dmac[number_dmacs_test-1][j],
+					data[j] = (char*) align_malloc(data_size_dmac[number_dmacs_test-1][i],
 						(void**)&unalligned_data[j]);
 					if (data[j] == 0)
 				  {
