@@ -26,7 +26,7 @@ MEMORY
   boot_rom (rx) : ORIGIN = 0xfffd0000, LENGTH = 64K
   oc_ram (rwx) : ORIGIN = 0xffff0000, LENGTH = 64K
   /* Need to have 64bytes available before start of program, to store the mkimage header */
-  ram (rwx) : ORIGIN = 0x100000 + 0x40, LENGTH = 16M
+  ram (rwx) : ORIGIN = 0x100000 + 0x40, LENGTH = 32M
 }
 
 /* These force the linker to search for particular symbols from

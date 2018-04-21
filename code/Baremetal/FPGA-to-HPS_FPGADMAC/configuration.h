@@ -56,24 +56,31 @@
 //Size of the FPGA-OCRs
 #define FPGA_OCR_SIZE  OCR_FPGA_SDRAM_0_SPAN
 
+//GPIO to change AXI AXI_SIGNALS
+#define GPIO_QSYS_ADDRESS PIO_0_BASE
+#define GPIO_ADDRESS ((uint8_t*)HF_BRIDGE_BASE + GPIO_QSYS_ADDRESS)
+
 //define some macros depending on the situation
 #ifdef BRIDGES_32BIT
 	#define NUM_OF_DMACS 5
-	#define NUM_OF_FPGA_OCR 5
+	#define FIRST_FPGA_OCR_CHECK 0
+	#define LAST_FPGA_OCR_CHECK 4
 	#define TRANSFER_WORD_SIZE FPGA_DMA_WORD_TRANSFERS
 	#define MIN_TRANSFER_SIZE 4 //Bytes
 #endif
 
 #ifdef BRIDGES_64BIT
 	#define NUM_OF_DMACS 5
-	#define NUM_OF_FPGA_OCR 5
+	#define FIRST_FPGA_OCR_CHECK 0
+	#define LAST_FPGA_OCR_CHECK 4
 	#define TRANSFER_WORD_SIZE FPGA_DMA_DOUBLEWORD_TRANSFERS
 	#define MIN_TRANSFER_SIZE 8 //Bytes
 #endif
 
 #ifdef BRIDGES_128BIT
 	#define NUM_OF_DMACS 3
-	#define NUM_OF_FPGA_OCR 3
+	#define FIRST_FPGA_OCR_CHECK 0
+	#define LAST_FPGA_OCR_CHECK 2
 	#define TRANSFER_WORD_SIZE FPGA_DMA_QUADWORD_TRANSFERS
 	#define MIN_TRANSFER_SIZE 16 //Bytes
 #endif

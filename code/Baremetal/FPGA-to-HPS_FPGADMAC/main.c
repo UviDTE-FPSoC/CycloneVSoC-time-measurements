@@ -34,6 +34,7 @@ int __auto_semihosting;
 
 ALT_STATUS_CODE check_mem(void* addr, int size);
 ALT_STATUS_CODE reset_mem(void* addr, int size);
+int upper_aligned(int number, int align);
 
 int main()
 {
@@ -41,31 +42,37 @@ int main()
 	#ifdef BRIDGES_32BIT
 		#ifdef WR_HPS
 			printf("WRITING HPS THROUGH 32-BIT BRIDGES\n\r");
-		#elif RD_HPS
-			printf("READING HPS THROUGH 32-BIT BRIDGES\n\r");
-		#else
+    #else
+		  #ifdef RD_HPS
+			   printf("READING HPS THROUGH 32-BIT BRIDGES\n\r");
+      #else
 			printf("CHOOSE RD OR WR!!\n\r");
 			return 0;
+      #endif
 		#endif
 	#endif
 	#ifdef BRIDGES_64BIT
 		#ifdef WR_HPS
 			printf("WRITING HPS THROUGH 64-BIT BRIDGES\n\r");
-		#elif RD_HPS
-			printf("READING HPS THROUGH 64-BIT BRIDGES\n\r");
-		#else
-			printf("CHOOSE RD OR WR!!\n\r");
-			return 0;
+    #else
+		  #ifdef RD_HPS
+			   printf("READING HPS THROUGH 64-BIT BRIDGES\n\r");
+		  #else
+			   printf("CHOOSE RD OR WR!!\n\r");
+			   return 0;
+      #endif
 		#endif
 	#endif
 	#ifdef BRIDGES_128BIT
 		#ifdef WR_HPS
 			printf("WRITING HPS THROUGH 128-BIT BRIDGES\n\r");
-		#elif RD_HPS
-			printf("READING HPS THROUGH 128-BIT BRIDGES\n\r");
-		#else
-			printf("CHOOSE RD OR WR!!\n\r");
-			return 0;
+    #else
+		  #ifdef RD_HPS
+			   printf("READING HPS THROUGH 128-BIT BRIDGES\n\r");
+		  #else
+			   printf("CHOOSE RD OR WR!!\n\r");
+			   return 0;
+      #endif
 		#endif
 	#endif
 
@@ -110,7 +117,8 @@ int main()
 		for (j=0; j<number_of_data_sizes; j++)
 		{
 			data_size_dmac[i][j] = max( MIN_TRANSFER_SIZE,
-                                  (int)ceil((float)data_size[j]/(float)(i+1)));
+                                  (upper_aligned((float)data_size[j]/(float)(i+1), MIN_TRANSFER_SIZE))
+                             );
 		}
 	}
 
@@ -144,7 +152,7 @@ printf("\n\r");
 
 	//-------------CHECK AND RESET FPGA 1kB FPGA ON-CHIP RAMs-------------//
 	//Check the FPGA-OCRs
-	for (i=0; i<NUM_OF_FPGA_OCR; i++)
+	for (i=FIRST_FPGA_OCR_CHECK; i<=LAST_FPGA_OCR_CHECK; i++)
 	{
 		status = check_mem(fpga_ocr_addr[i], FPGA_OCR_SIZE);
 		if (status == ALT_E_SUCCESS)
@@ -157,7 +165,8 @@ printf("\n\r");
 	}
 
 	//Reset the FPGA-OCRs
-	for (i=0; i<NUM_OF_FPGA_OCR; i++) reset_mem(fpga_ocr_addr[i], FPGA_OCR_SIZE);
+	for (i=FIRST_FPGA_OCR_CHECK; i<=LAST_FPGA_OCR_CHECK; i++)
+    reset_mem(fpga_ocr_addr[i], FPGA_OCR_SIZE);
 
 	//----------CONFIGURING CACHE-----------//
 	cache_configuration(cache_config);
@@ -171,6 +180,19 @@ printf("\n\r");
 		printf("ACP ID Mapper configuration was not succesful\n\r");
 		return ALT_E_ERROR;
 	}
+
+  //------DEFINE AXI SIGNALS THAT CAN AFFECT THE TRANSACTION-------//
+  //AXI_SIGNALS[3-0]  = AWCACHE = 0111 (Cacheable write-back, allocate reads only)
+  //AXI_SIGNALS[6-4]  = AWPROT = 000 (normal access, non-secure, data)
+  //AXI_SIGNALS[11-7] = AWUSER = 00001 (Coherent access)
+  //AXI_SIGNALS[19-16]  = ARCACHE = 0111
+  //AXI_SIGNALS[22-20]  = ARPROT = 000
+  //AXI_SIGNALS[27-23] = ARUSER = 00001
+  //AXI_SIGNALS = 0x00870087; //works for WR and RD and gives fastest accesses
+  uint32_t AXI_SIGNALS = 0x00870087;
+  uint8_t* gpio_add = GPIO_ADDRESS;
+  //Write data to the GPIO connected to AXI signals
+  *gpio_add = AXI_SIGNALS;
 
   //----CONFIGURING SDRAM CONTROLLER-------//
   //Remove FPGA-to-SDRAMC ports from reset so FPGA can access SDRAM through them
@@ -466,4 +488,10 @@ ALT_STATUS_CODE reset_mem(void* addr, int size)
 		ptr++;
 	}
 	return ALT_E_SUCCESS;
+}
+
+int upper_aligned(int number, int align)
+{
+  int partial = (int) ceil(((float)number)/((float)align));
+  return (partial * align);
 }
