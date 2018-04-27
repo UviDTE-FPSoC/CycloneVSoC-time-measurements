@@ -82,7 +82,7 @@ int main()
 	//-------------Common variables------------//
 	ALT_STATUS_CODE status = ALT_E_SUCCESS;
 
-	int i, j, l, h; //vars for loops
+	int i, j, l, k, h; //vars for loops
   #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
   int i_dummy = 0;
   #endif
@@ -93,6 +93,7 @@ int main()
 	//-----------some variables to define speed tests-------//
 	//define data sizes
 	int number_of_data_sizes = 21; //size of data_size[]
+  int number_of_data_sizes_test; //from all, which ones to test??
 	//data pointer to buffers in CPU memory
 	char* data[5]; //alligned
 	char* unalligned_data[5]; //alligned
@@ -236,39 +237,64 @@ printf("\n\r");
 	//-----------MOVING DATA WITH DMAC------------//
 	printf("\n\r--MOVING DATA WITH THE DMACs--\n\r");
 
+  #ifdef TEST_ALL_COMBINATIONS
   for (h=0; h<5; h++)
+  #endif
+  #ifdef TEST_ONLY_F2S_BRIDGES
+  for (h=0; h<2; h++)
+  #endif
+  #ifdef TEST_F2H_AND_ALL_BRIDGES
+  for (h=2; h<5; h++)
+  #endif
   {
     switch(h)
 		{
     case 0:
-      printf("\n\rFPGA-HPS ACP\n\r");
-			number_dmacs_test = 1;
-			first_dmac_test = 0;
-			last_dmac_test = 0;
-      break;
-    case 1:
-      printf("\n\rFPGA-HPS L3->SDRAMC\n\r");
-			number_dmacs_test = 1;
-			first_dmac_test = 0;
-			last_dmac_test = 0;
-      break;
-    case 2:
       printf("\n\r1xFPGA-SDRAMC\n\r");
 			number_dmacs_test = 1;
 			first_dmac_test = 1;
 			last_dmac_test = 1;
+      number_of_data_sizes_test = number_of_data_sizes;
       break;
-    case 3:
+    case 1:
       printf("\n\rAll FPGA-SDRAMC\n\r");
 			number_dmacs_test = NUM_OF_DMACS-1;
 			first_dmac_test = 1;
 			last_dmac_test = NUM_OF_DMACS-1;
+      number_of_data_sizes_test = number_of_data_sizes;
+      break;
+    case 2:
+      printf("\n\rFPGA-HPS ACP\n\r");
+			number_dmacs_test = 1;
+			first_dmac_test = 0;
+			last_dmac_test = 0;
+      #ifdef LIMIT_F2H_TESTS
+        number_of_data_sizes_test = NUMBER_DATA_SIZES_TEST;
+      #else
+        number_of_data_sizes_test = number_of_data_sizes;
+      #endif
+      break;
+    case 3:
+      printf("\n\rFPGA-HPS L3->SDRAMC\n\r");
+			number_dmacs_test = 1;
+			first_dmac_test = 0;
+			last_dmac_test = 0;
+      #ifdef LIMIT_F2H_TESTS
+        number_of_data_sizes_test = NUMBER_DATA_SIZES_TEST;
+      #else
+        number_of_data_sizes_test = number_of_data_sizes;
+      #endif
       break;
     case 4:
       printf("\n\rAll Bridges\n\r");
 			number_dmacs_test = NUM_OF_DMACS;
 			first_dmac_test = 0;
 			last_dmac_test = NUM_OF_DMACS-1;
+      #ifdef LIMIT_F2H_TESTS
+        number_of_data_sizes_test = NUMBER_DATA_SIZES_TEST;
+      #else
+        number_of_data_sizes_test = number_of_data_sizes;
+      #endif
       break;
     default:
       break;
@@ -346,8 +372,9 @@ printf("\n\r");
     #endif
 
     //Moving data with DMAC (DMAC program preparation is measured)
+    printf("data sizes test = %d\n\r", number_of_data_sizes_test);
 	  printf("Data Size, Average, Min, Max, Variance\n\r");
-    for(i=0; i<number_of_data_sizes; i++)//for each data size
+    for(i=0; i<number_of_data_sizes_test; i++)//for each data size
 	  {
 		  reset_cumulative( &total_dma, &min_dma, &max_dma, &var_dma);
 
@@ -365,7 +392,7 @@ printf("\n\r");
 				  }
 				}
 
-				if (h==0) //If the transfer is through ACP
+				if (h==2) //If the transfer is through ACP
 					for (j=first_dmac_test; j<=last_dmac_test; j++) data_dmac[j]
 						= data[j] + 0x80000000;
 				else
@@ -374,8 +401,8 @@ printf("\n\r");
 				//clear destiny and fill source
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-					for (l= 0; l<data_size_dmac[number_dmacs_test-1][i];l++)
-							((char*)(DMA_SRC_UP[j]))[l] = (char) i;
+					for (k= 0; k<data_size_dmac[number_dmacs_test-1][i];k++)
+							((char*)(DMA_SRC_UP[j]))[k] = (char) i;
 					reset_mem(DMA_DST_UP[j], data_size_dmac[number_dmacs_test-1][i]);
 				}
 				//Configure DMACs for their respective transfers
@@ -416,7 +443,8 @@ printf("\n\r");
 				overflow = pmu_counter_read_ns(&pmu_counter_ns);
 				if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
         	return 1;}
-					//printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
+
+        //printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
 
 				if (l>=2) update_cumulative(&total_dma, &min_dma, &max_dma,
 			    &var_dma, 0, pmu_counter_ns, clk_overhead);
@@ -433,8 +461,6 @@ printf("\n\r");
 				    return 1;
 					}
 				}
-				//printf("%d: %lld, %lld, %lld, %lld, %lld\n\r",l, pmu_counter_ns-
-			  //clk_overhead, total_dma_wr, min_dma_wr, max_dma_wr, var_dma_wr);
 
 				//free dynamic memory
 				for (j=first_dmac_test; j<=last_dmac_test; j++)

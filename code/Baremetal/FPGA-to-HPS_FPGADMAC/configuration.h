@@ -11,6 +11,21 @@
 //Select writing HPS (WR) or reading the HPS (RD)
 #define WR_HPS
 //#define RD_HPS
+
+//Limit the F2H tests to MAX_SIZE_F2H_TESTS
+//#define LIMIT_F2H_TESTS
+#define NUMBER_DATA_SIZES_TEST  16
+
+//What to test
+#define TEST_ALL_COMBINATIONS
+//#define TEST_ONLY_F2S_BRIDGES
+//#define TEST_F2H_AND_ALL_BRIDGES
+
+#include "hwlib.h"
+#include "socal/socal.h"
+#include "socal/hps.h"
+#include "hps_0_FPGA-HPS.h" //qsys addresses of the DMACs and FPGA-OCRs
+
 #ifdef WR_HPS
 	//When writing to HPS the FPGA should read from a constant address in
 	//FPGA-OCR because OCR size is only 1kB and it would overflow otherwise
@@ -33,11 +48,6 @@
 	#define DMA_SRC_DMAC data_dmac //cpu buffers
 	#define DMA_DST_DMAC fpga_ocr_dmac //fpga-ocrs
 #endif
-
-#include "hwlib.h"
-#include "socal/socal.h"
-#include "socal/hps.h"
-#include "hps_0_FPGA-HPS.h" //qsys addresses of the DMACs and FPGA-OCRs
 
 //HPS-FPGA bridge base
 #define HF_BRIDGE_BASE (void*)0xC0000000
@@ -79,8 +89,8 @@
 
 #ifdef BRIDGES_128BIT
 	#define NUM_OF_DMACS 3
-	#define FIRST_FPGA_OCR_CHECK 0
-	#define LAST_FPGA_OCR_CHECK 2
+	#define FIRST_FPGA_OCR_CHECK (0)
+	#define LAST_FPGA_OCR_CHECK (2)
 	#define TRANSFER_WORD_SIZE FPGA_DMA_QUADWORD_TRANSFERS
 	#define MIN_TRANSFER_SIZE 16 //Bytes
 #endif
@@ -106,7 +116,7 @@
 13 do 12 and store_buffer_limitation
 */
 
-#define REP_TESTS 2 //repetitions of every time measurement
+#define REP_TESTS 100 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
 //SDRAM CONTROLLER STUDY MACROS
