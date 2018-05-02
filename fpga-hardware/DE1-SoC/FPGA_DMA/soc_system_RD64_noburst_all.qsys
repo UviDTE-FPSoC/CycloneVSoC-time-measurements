@@ -463,11 +463,11 @@
   <parameter name="ENABLE_USER_ECC" value="false" />
   <parameter name="EXPORT_AFI_HALF_CLK" value="false" />
   <parameter name="EXTRA_SETTINGS" value="" />
-  <parameter name="F2H_AXI_CLOCK_FREQ" value="100000000" />
-  <parameter name="F2H_SDRAM0_CLOCK_FREQ" value="100000000" />
-  <parameter name="F2H_SDRAM1_CLOCK_FREQ" value="100000000" />
-  <parameter name="F2H_SDRAM2_CLOCK_FREQ" value="100000000" />
-  <parameter name="F2H_SDRAM3_CLOCK_FREQ" value="100000000" />
+  <parameter name="F2H_AXI_CLOCK_FREQ" value="50000000" />
+  <parameter name="F2H_SDRAM0_CLOCK_FREQ" value="50000000" />
+  <parameter name="F2H_SDRAM1_CLOCK_FREQ" value="50000000" />
+  <parameter name="F2H_SDRAM2_CLOCK_FREQ" value="50000000" />
+  <parameter name="F2H_SDRAM3_CLOCK_FREQ" value="50000000" />
   <parameter name="F2H_SDRAM4_CLOCK_FREQ" value="100" />
   <parameter name="F2H_SDRAM5_CLOCK_FREQ" value="100" />
   <parameter name="F2SCLK_COLDRST_Enable" value="true" />
@@ -519,10 +519,10 @@
   <parameter name="FPGA_PERIPHERAL_OUTPUT_CLOCK_FREQ_SPIM1_SCLK_OUT" value="100" />
   <parameter name="GPIO_Enable">No,No,No,No,No,No,No,No,No,Yes,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,Yes,No,No,No,No,Yes,No,No,No,No,No,No,No,Yes,No,No,No,No,Yes,Yes,No,No,No,No,No,No,Yes,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No</parameter>
   <parameter name="GP_Enable" value="false" />
-  <parameter name="H2F_AXI_CLOCK_FREQ" value="100000000" />
+  <parameter name="H2F_AXI_CLOCK_FREQ" value="50000000" />
   <parameter name="H2F_CTI_CLOCK_FREQ" value="100" />
   <parameter name="H2F_DEBUG_APB_CLOCK_FREQ" value="100" />
-  <parameter name="H2F_LW_AXI_CLOCK_FREQ" value="100000000" />
+  <parameter name="H2F_LW_AXI_CLOCK_FREQ" value="50000000" />
   <parameter name="H2F_TPIU_CLOCK_IN_FREQ" value="100" />
   <parameter name="HARD_EMIF" value="true" />
   <parameter name="HCX_COMPAT_MODE" value="false" />
@@ -740,7 +740,7 @@
   <parameter name="S2FINTERRUPT_UART_Enable" value="false" />
   <parameter name="S2FINTERRUPT_USB_Enable" value="false" />
   <parameter name="S2FINTERRUPT_WATCHDOG_Enable" value="false" />
-  <parameter name="S2F_Width" value="3" />
+  <parameter name="S2F_Width" value="2" />
   <parameter name="SDIO_Mode" value="4-bit Data" />
   <parameter name="SDIO_PinMuxing" value="HPS I/O Set 0" />
   <parameter name="SEQUENCER_TYPE" value="NIOS" />
@@ -1057,7 +1057,7 @@
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="100000000" />
+  <parameter name="clockRate" value="50000000" />
   <parameter name="direction" value="InOut" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
@@ -1186,7 +1186,7 @@
   <parameter name="gui_multiply_factor" value="1" />
   <parameter name="gui_number_of_clocks" value="1" />
   <parameter name="gui_operation_mode" value="direct" />
-  <parameter name="gui_output_clock_frequency0" value="100.0" />
+  <parameter name="gui_output_clock_frequency0" value="50.0" />
   <parameter name="gui_output_clock_frequency1" value="100.0" />
   <parameter name="gui_output_clock_frequency10" value="100.0" />
   <parameter name="gui_output_clock_frequency11" value="100.0" />
