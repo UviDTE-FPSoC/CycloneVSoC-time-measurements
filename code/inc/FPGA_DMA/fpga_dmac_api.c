@@ -1,4 +1,4 @@
-//API for the Qsys DMA Controller
+//API for the Qsys DMA Controller v.1.1
 #include "fpga_dmac_api.h"
 
 //-----------------Generic functions--------------------//
@@ -59,7 +59,8 @@ void fpga_dma_config_transfer(void* addr, void* src, void* dst, unsigned int siz
                       (uint32_t) size);
   //Wait a small time. Needed for the read from HPS to work.
   int counter=0;
-  for(int j=0; j<10; j++) counter++;
+  int j;
+  for(j=0; j<10; j++) counter++;
 }
 
 void fpga_dma_start_transfer(void* addr)
@@ -77,6 +78,7 @@ uint32_t fpga_dma_transfer_done(void* addr)
 }
 
 //alligned allocation to the transfer size is needed for reading HPS from FPGA
+//in baremetal
 
 void* align_malloc (size_t size, void** unaligned_addr)
 {
@@ -84,7 +86,8 @@ void* align_malloc (size_t size, void** unaligned_addr)
   *unaligned_addr = (void*) Buffer_8;
   uint8_t* Buffer_8_ptr;
   Buffer_8_ptr = (uint8_t*)Buffer_8;
-  for(int k=0; k<(size); k++)
+  int k;
+  for(k=0; k<(size); k++)
   {
     if ((((unsigned long int)Buffer_8_ptr) % ((unsigned long int)size))==0)
     {
