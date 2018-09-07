@@ -267,7 +267,9 @@ int main(int argc, char **argv) {
   void *AXI_GPIO_vaddr_void = virtual_base
   + ((unsigned long)(GPIO_QSYS_ADDRESS) & (unsigned long)( MMAP_MASK ));
   uint32_t* AXI_GPIO_vaddr = (uint32_t *) AXI_GPIO_vaddr_void;
+  printf("AXI_GPIO_vaddr=%x\n", (unsigned int)(*AXI_GPIO_vaddr));
   *AXI_GPIO_vaddr = AXI_SIGNALS;
+  printf("AXI_GPIO_vaddr=%x\n", (unsigned int)(*AXI_GPIO_vaddr));
 
   //To do the transfers it is needed to enable access to PMU from user space,
   //configure ACP and remove FPGA-to-SDRAM ports from reset. This is done
@@ -291,7 +293,7 @@ int main(int argc, char **argv) {
   for (h=0; h<2; h++)
   #endif
   #ifdef TEST_F2H_AND_ALL_BRIDGES
-  for (h=2; h<5; h++)
+  for (h=2; h<4; h++)
   #endif
   {
     switch(h)
@@ -364,34 +366,38 @@ int main(int argc, char **argv) {
 	  {
 		  reset_cumulative( &total_dma, &min_dma, &max_dma, &var_dma);
 
+      //reserve buffers needed to do the transfers
+      for (j=first_dmac_test; j<=last_dmac_test; j++)
+      {
+        //alloc the buffer in the processor
+        data[j] = (char*) malloc(data_size_dmac[number_dmacs_test-1][i]);
+        if (data[j] == 0)
+        {
+          printf("ERROR when calling malloc: Out of memory \n\r");
+          return 1;
+        }
+        //alloc the intermediate buffers used by the DMACs
+        if (h==2) //If the transfer is through ACP
+          data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
+            0, &(f_intermediate_buff[j])) + 0x80000000;
+        else
+          data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
+            1, &(f_intermediate_buff[j]));
+      }
+
 		  for(l = 0; l<REP_TESTS+2; l++)
 		  {
-			  //reserve buffers needed to do the transfers
-				for (j=first_dmac_test; j<=last_dmac_test; j++)
-				{
-          //alloc the buffer in the processor
-          data[j] = (char*) malloc(data_size_dmac[number_dmacs_test-1][i]);
-					if (data[j] == 0)
-				  {
-					  printf("ERROR when calling malloc: Out of memory \n\r");
-					  return 1;
-				  }
-          //alloc the intermediate buffers used by the DMACs
-          if (h==2) //If the transfer is through ACP
-            data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
-              0, &(f_intermediate_buff[j])) + 0x80000000;
-          else
-            data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
-              1, &(f_intermediate_buff[j]));
-				}
-
 				//clear destiny and fill source
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-					for (k= 0; k<data_size_dmac[number_dmacs_test-1][i];k++)
-							((char*)(DMA_SRC_UP[j]))[k] = (char) i;
-					reset_mem(DMA_DST_UP[j], data_size_dmac[number_dmacs_test-1][i]);
+					for (k= 0; k<data_size_dmac[number_dmacs_test-1][i]; k++)
+							((char*)(data[j]))[k] = (char) 3;
+          for (k= 0; k<MIN_TRANSFER_SIZE;k++)
+							((char*)(fpga_ocr_addr[j]))[k] = (char) 5;
+          printbuff(DMA_SRC_UP[j], 32);
+          printbuff(DMA_DST_UP[j], 32);
 				}
+
 				//Configure DMACs for their respective transfers
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
         {
@@ -416,22 +422,23 @@ int main(int argc, char **argv) {
         }
         #endif
         //start DMACs
-				for (j=first_dmac_test; j<=last_dmac_test; j++)
+        for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
 					fpga_dma_start_transfer(dma_addr[j]);
 				}
-        printf("Wainting for DMA\n");
+
 				// Wait for each dmac to finish its transfer
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
 					while(fpga_dma_transfer_done(dma_addr[j])==0);
 				}
-        printf("Wainting finished\n");
         // Copy from intermediate buffers to data[] if WR
         #ifdef WR_HPS
+        for (j=first_dmac_test; j<=last_dmac_test; j++)
+				{
           read(f_intermediate_buff[j], data[j], data_size_dmac[number_dmacs_test-1][i]);
+        }
         #endif
-        printf("Write driver finished\n");
 				overflow = pmu_counter_read_ns(&pmu_counter_ns);
 				if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
         	return 1;}
@@ -447,27 +454,32 @@ int main(int argc, char **argv) {
 				// Compare results
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-					if(0  != memcmp(DMA_SRC_UP[j], DMA_SRC_UP[j], 2))
+          printbuff(DMA_SRC_UP[j], 32);
+          printbuff(DMA_DST_UP[j], 32);
+					if(0  != memcmp(DMA_SRC_UP[j], DMA_DST_UP[j], 2))
 					{
 						printf("DMA src and dst have different data!! Program ended\n\r");
 				    return 1;
 					}
 				}
 
-				//free dynamic memory
-				for (j=first_dmac_test; j<=last_dmac_test; j++)
-				{
-          free_phys_contiguous(f_intermediate_buff[j]);
-				}
-			}
-
+			}//for rep tests
 			printf("%d, %lld, %lld, %lld, %lld\n\r",
 	    data_size[i], total_dma/REP_TESTS, min_dma, max_dma,
 	    variance(var_dma, total_dma, REP_TESTS));
-		}
 
+      //free dynamic memory
+      for (j=first_dmac_test; j<=last_dmac_test; j++)
+      {
+        free_phys_contiguous(f_intermediate_buff[j]);
+      }
+		}//for data_sizes
 	}//for h
+
+  if (print_screen == 0) fclose (f_print);
+
 	print("\n\rData transfer measurements finished!!!!\n\r");
+
   return 0;
 
 }//end main

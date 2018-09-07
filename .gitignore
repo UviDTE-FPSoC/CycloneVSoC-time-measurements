@@ -37,3 +37,6 @@ code/**/time_measurements_CPU
 **/fpga-hardware/**/**/*.bak
 **/fpga-hardware/**/**/*.h
 **/fpga-hardware/**/**/**/*.sof
+
+#Excel
+**/~$*

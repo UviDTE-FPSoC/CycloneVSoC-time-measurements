@@ -9,17 +9,17 @@
 #define BRIDGES_128BIT
 
 //Select writing HPS (WR) or reading the HPS (RD)
-#define WR_HPS
-//#define RD_HPS
+//#define WR_HPS
+#define RD_HPS
 
 //Limit the F2H tests to MAX_SIZE_F2H_TESTS
 //#define LIMIT_F2H_TESTS
 #define NUMBER_DATA_SIZES_TEST  16
 
 //What to test
-#define TEST_ALL_COMBINATIONS
+//#define TEST_ALL_COMBINATIONS
 //#define TEST_ONLY_F2S_BRIDGES
-//#define TEST_F2H_AND_ALL_BRIDGES
+#define TEST_F2H_AND_ALL_BRIDGES
 
 #include "hps_0_FPGA-HPS.h" //qsys addresses of the DMACs and FPGA-OCRs
 
@@ -84,7 +84,7 @@
 #endif
 
 
-#define REP_TESTS 2 //repetitions of every time measurement
+#define REP_TESTS 1 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
 //Uncomment to generate dummy traffic in CPU memory to pollute cache and
