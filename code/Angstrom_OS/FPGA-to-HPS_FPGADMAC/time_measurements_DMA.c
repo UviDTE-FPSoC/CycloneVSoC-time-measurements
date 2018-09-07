@@ -293,7 +293,7 @@ int main(int argc, char **argv) {
   for (h=0; h<2; h++)
   #endif
   #ifdef TEST_F2H_AND_ALL_BRIDGES
-  for (h=2; h<4; h++)
+  for (h=2; h<5; h++)
   #endif
   {
     switch(h)
@@ -359,6 +359,18 @@ int main(int argc, char **argv) {
 									  );
 		}
 
+    //Allocate intermediate buffers in driver
+    for (j=first_dmac_test; j<=last_dmac_test; j++)
+    {
+      //alloc the intermediate buffers used by the DMACs
+      if (h==2) //If the transfer is through ACP
+        data_dmac[j] = alloc_phys_contiguous(2*1024*1024,
+          0, &(f_intermediate_buff[j])) + 0x80000000;
+      else
+        data_dmac[j] = alloc_phys_contiguous(2*1024*1024,
+          1, &(f_intermediate_buff[j]));
+    }
+
     //Moving data with DMAC (DMAC program preparation is measured)
     printf("data sizes test = %d\n\r", number_of_data_sizes_test);
 	  printf("Data Size, Average, Min, Max, Variance\n\r");
@@ -376,13 +388,6 @@ int main(int argc, char **argv) {
           printf("ERROR when calling malloc: Out of memory \n\r");
           return 1;
         }
-        //alloc the intermediate buffers used by the DMACs
-        if (h==2) //If the transfer is through ACP
-          data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
-            0, &(f_intermediate_buff[j])) + 0x80000000;
-        else
-          data_dmac[j] = alloc_phys_contiguous(data_size_dmac[number_dmacs_test-1][i],
-            1, &(f_intermediate_buff[j]));
       }
 
 		  for(l = 0; l<REP_TESTS+2; l++)
@@ -394,8 +399,8 @@ int main(int argc, char **argv) {
 							((char*)(data[j]))[k] = (char) 3;
           for (k= 0; k<MIN_TRANSFER_SIZE;k++)
 							((char*)(fpga_ocr_addr[j]))[k] = (char) 5;
-          printbuff(DMA_SRC_UP[j], 32);
-          printbuff(DMA_DST_UP[j], 32);
+          //printbuff(DMA_SRC_UP[j], 32);
+          //printbuff(DMA_DST_UP[j], 32);
 				}
 
 				//Configure DMACs for their respective transfers
@@ -426,7 +431,6 @@ int main(int argc, char **argv) {
 				{
 					fpga_dma_start_transfer(dma_addr[j]);
 				}
-
 				// Wait for each dmac to finish its transfer
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
@@ -454,8 +458,8 @@ int main(int argc, char **argv) {
 				// Compare results
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-          printbuff(DMA_SRC_UP[j], 32);
-          printbuff(DMA_DST_UP[j], 32);
+          //printbuff(DMA_SRC_UP[j], 32);
+          //printbuff(DMA_DST_UP[j], 32);
 					if(0  != memcmp(DMA_SRC_UP[j], DMA_DST_UP[j], 2))
 					{
 						printf("DMA src and dst have different data!! Program ended\n\r");
@@ -467,13 +471,12 @@ int main(int argc, char **argv) {
 			printf("%d, %lld, %lld, %lld, %lld\n\r",
 	    data_size[i], total_dma/REP_TESTS, min_dma, max_dma,
 	    variance(var_dma, total_dma, REP_TESTS));
-
-      //free dynamic memory
-      for (j=first_dmac_test; j<=last_dmac_test; j++)
-      {
-        free_phys_contiguous(f_intermediate_buff[j]);
-      }
 		}//for data_sizes
+    //free dynamic memory
+    for (j=first_dmac_test; j<=last_dmac_test; j++)
+    {
+      free_phys_contiguous(f_intermediate_buff[j]);
+    }
 	}//for h
 
   if (print_screen == 0) fclose (f_print);

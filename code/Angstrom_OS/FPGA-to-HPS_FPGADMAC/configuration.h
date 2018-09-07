@@ -17,9 +17,9 @@
 #define NUMBER_DATA_SIZES_TEST  16
 
 //What to test
-//#define TEST_ALL_COMBINATIONS
+#define TEST_ALL_COMBINATIONS
 //#define TEST_ONLY_F2S_BRIDGES
-#define TEST_F2H_AND_ALL_BRIDGES
+//#define TEST_F2H_AND_ALL_BRIDGES
 
 #include "hps_0_FPGA-HPS.h" //qsys addresses of the DMACs and FPGA-OCRs
 
