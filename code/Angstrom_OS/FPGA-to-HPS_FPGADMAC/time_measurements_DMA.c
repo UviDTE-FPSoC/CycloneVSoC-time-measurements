@@ -52,7 +52,7 @@ void free_phys_contiguous(int filep);
 //Declaration of the function and variables to print in file or screen
 int print_screen; //0 save results into file, 1 print results in screen
 FILE* f_print;//file to print the results in case file is selected
-void print(const char *str, ...) {
+void print_screen_file(const char *str, ...) {
     va_list args;
     va_start(args, str);
     if(print_screen==1)
@@ -84,45 +84,45 @@ int main(int argc, char **argv) {
     print_screen = 1;
   }
 
-  print("---MEASURING FPGA-HPS BRIDGES SPEED IN BAREMETAL WITH FPGA DMACs--\n\r\r");
+  print_screen_file("---MEASURING FPGA-HPS BRIDGES SPEED IN BAREMETAL WITH FPGA DMACs--\n\n");
 	#ifdef BRIDGES_32BIT
 		#ifdef WR_HPS
-			print("WRITING HPS THROUGH 32-BIT BRIDGES\n\r");
+			print_screen_file("WRITING HPS THROUGH 32-BIT BRIDGES\n");
     #else
 		  #ifdef RD_HPS
-			   print("READING HPS THROUGH 32-BIT BRIDGES\n\r");
+			   print_screen_file("READING HPS THROUGH 32-BIT BRIDGES\n");
       #else
-			print("CHOOSE RD OR WR!!\n\r");
+			print_screen_file("CHOOSE RD OR WR!!\n");
 			return 0;
       #endif
 		#endif
 	#endif
 	#ifdef BRIDGES_64BIT
 		#ifdef WR_HPS
-			print("WRITING HPS THROUGH 64-BIT BRIDGES\n\r");
+			print_screen_file("WRITING HPS THROUGH 64-BIT BRIDGES\n");
     #else
 		  #ifdef RD_HPS
-			   print("READING HPS THROUGH 64-BIT BRIDGES\n\r");
+			   print_screen_file("READING HPS THROUGH 64-BIT BRIDGES\n");
 		  #else
-			   print("CHOOSE RD OR WR!!\n\r");
+			   print_screen_file("CHOOSE RD OR WR!!\n");
 			   return 0;
       #endif
 		#endif
 	#endif
 	#ifdef BRIDGES_128BIT
 		#ifdef WR_HPS
-			print("WRITING HPS THROUGH 128-BIT BRIDGES\n\r");
+			print_screen_file("WRITING HPS THROUGH 128-BIT BRIDGES\n");
     #else
 		  #ifdef RD_HPS
-			   print("READING HPS THROUGH 128-BIT BRIDGES\n\r");
+			   print_screen_file("READING HPS THROUGH 128-BIT BRIDGES\n");
 		  #else
-			   print("CHOOSE RD OR WR!!\n\r");
+			   print_screen_file("CHOOSE RD OR WR!!\n");
 			   return 0;
       #endif
 		#endif
 	#endif
 
-	print("Each measurement is repeated %d times\n\r", REP_TESTS);
+	print_screen_file("Each measurement is repeated %d times\n", REP_TESTS);
 
   int i, j, l, k, h; //vars for loops
 
@@ -168,13 +168,13 @@ int main(int argc, char **argv) {
 
   for (i=0; i<5; i++)
 	{
-    print("\n\rdata_size_dmac[%d]=",i);
+    print_screen_file("\ndata_size_dmac[%d]=",i);
 		for (j=0; j<number_of_data_sizes; j++)
 		{
-      print("%d,",data_size_dmac[i][j]);
+      print_screen_file("%d,",data_size_dmac[i][j]);
 		}
 	}
-  print("\n\r");
+  print_screen_file("\n");
 
   //-----GENERATE ADRESSES TO ACCESS FPGA MEMORY AND DMACS FROM PROCESSOR-----//
   void *virtual_base;
@@ -211,9 +211,9 @@ int main(int argc, char **argv) {
   pmu_init_ns(800, 1); //Initialize PMU cycle cntr, 800MHz src, freq divider 1
   pmu_counter_enable();//Enable cycle counter inside PMU (it starts counting)
   float pmu_res = pmu_getres_ns();
-  print("PMU is used like timer with the following characteristics\n\r");
-  print("PMU cycle counter resolution is %f ns\n\r", pmu_res );
-  print("Measuring PMU counter overhead...\n\r");
+  print_screen_file("PMU is used like timer with the following characteristics\n");
+  print_screen_file("PMU cycle counter resolution is %f ns\n", pmu_res );
+  print_screen_file("Measuring PMU counter overhead...\n");
 
   reset_cumulative(&total_clk, &min_clk, &max_clk, &variance_clk);
   int overflow = 0;
@@ -225,17 +225,17 @@ int main(int argc, char **argv) {
 		fpga_dma_write_bit(dma_addr[0], FPGA_DMA_CONTROL, FPGA_DMA_GO, 0);
 		fpga_dma_transfer_done(dma_addr[0]);
     overflow = pmu_counter_read_ns(&pmu_counter_ns);
-    //printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
+    //printf("PMU counter (ns): %lld \n", pmu_counter_ns);
     if (overflow == 1){
-      printf("Cycle counter overflow!! Program ended\n\r");return 1;}
+      printf("Cycle counter overflow!! Program ended\n");return 1;}
     if (i>=2) update_cumulative(&total_clk, &min_clk, &max_clk, &variance_clk,
       0, pmu_counter_ns, 0);
     //(We erase two first measurements because they are different from the
       //others. Reason:Branch prediction misses when entering for loop)
   }
-  print("PMU Cycle Timer Stats for %d consecutive reads\n\r", CLK_REP_TESTS);
-  print("Average, Minimum, Maximum, Variance\n\r");
-  print("%lld,%lld,%lld,%lld\n\r", clk_read_average = total_clk/CLK_REP_TESTS,
+  print_screen_file("PMU Cycle Timer Stats for %d consecutive reads\n", CLK_REP_TESTS);
+  print_screen_file("Average, Minimum, Maximum, Variance\n");
+  print_screen_file("%lld,%lld,%lld,%lld\n", clk_read_average = total_clk/CLK_REP_TESTS,
       min_clk, max_clk, variance (variance_clk , total_clk, CLK_REP_TESTS));
 
 
@@ -246,10 +246,10 @@ int main(int argc, char **argv) {
 	{
 		status = check_mem(fpga_ocr_addr[i], FPGA_OCR_SIZE);
 		if (status == 0)
-			print("Check FPGA On-Chip RAM %d OK\n\r", i);
+			print_screen_file("Check FPGA On-Chip RAM %d OK\n", i);
 		else
 		{
-			printf ("Error when checking FPGA On-Chip RAM %d\n\r", i);
+			printf ("Error when checking FPGA On-Chip RAM %d\n", i);
 			return 1;
 		}
 	}
@@ -267,9 +267,7 @@ int main(int argc, char **argv) {
   void *AXI_GPIO_vaddr_void = virtual_base
   + ((unsigned long)(GPIO_QSYS_ADDRESS) & (unsigned long)( MMAP_MASK ));
   uint32_t* AXI_GPIO_vaddr = (uint32_t *) AXI_GPIO_vaddr_void;
-  printf("AXI_GPIO_vaddr=%x\n", (unsigned int)(*AXI_GPIO_vaddr));
   *AXI_GPIO_vaddr = AXI_SIGNALS;
-  printf("AXI_GPIO_vaddr=%x\n", (unsigned int)(*AXI_GPIO_vaddr));
 
   //To do the transfers it is needed to enable access to PMU from user space,
   //configure ACP and remove FPGA-to-SDRAM ports from reset. This is done
@@ -278,10 +276,10 @@ int main(int argc, char **argv) {
   //It must be inserted before using the program.
 
   //-----------MOVING DATA WITH DMAC------------//
-  print("\n\r--MOVING DATA WITH THE DMACs--\n\r");
+  print_screen_file("\n--MOVING DATA WITH THE DMACs--\n");
 
   #ifdef GENERATE_DUMMY_TRAFFIC_IN_CACHE
-  print("Dummy traffic is generated to pollute cache\n\r");
+  print_screen_file("Dummy traffic is generated to pollute cache\n");
   pthread_t t;
   pthread_create(&t, NULL, genereate_dummy_traffic, NULL);
   #endif
@@ -299,21 +297,21 @@ int main(int argc, char **argv) {
     switch(h)
 		{
     case 0:
-      printf("\n\r1xFPGA-SDRAMC\n\r");
+      print_screen_file("\n1xFPGA-SDRAMC\n");
 			number_dmacs_test = 1;
 			first_dmac_test = 1;
 			last_dmac_test = 1;
       number_of_data_sizes_test = number_of_data_sizes;
       break;
     case 1:
-      printf("\n\rAll FPGA-SDRAMC\n\r");
+      print_screen_file("\nAll FPGA-SDRAMC\n");
 			number_dmacs_test = NUM_OF_DMACS-1;
 			first_dmac_test = 1;
 			last_dmac_test = NUM_OF_DMACS-1;
       number_of_data_sizes_test = number_of_data_sizes;
       break;
     case 2:
-      printf("\n\rFPGA-HPS ACP\n\r");
+      print_screen_file("\nFPGA-HPS ACP\n");
 			number_dmacs_test = 1;
 			first_dmac_test = 0;
 			last_dmac_test = 0;
@@ -324,7 +322,7 @@ int main(int argc, char **argv) {
       #endif
       break;
     case 3:
-      printf("\n\rFPGA-HPS L3->SDRAMC\n\r");
+      print_screen_file("\nFPGA-HPS L3->SDRAMC\n");
 			number_dmacs_test = 1;
 			first_dmac_test = 0;
 			last_dmac_test = 0;
@@ -335,7 +333,7 @@ int main(int argc, char **argv) {
       #endif
       break;
     case 4:
-      printf("\n\rAll Bridges\n\r");
+      print_screen_file("\nAll Bridges\n");
 			number_dmacs_test = NUM_OF_DMACS;
 			first_dmac_test = 0;
 			last_dmac_test = NUM_OF_DMACS-1;
@@ -349,7 +347,7 @@ int main(int argc, char **argv) {
       break;
     }
 
-		printf("INFO: Initializing DMA controllers.\n\r");
+		print_screen_file("INFO: Initializing DMA controllers.\n");
 		for (j=first_dmac_test; j<=last_dmac_test; j++)
 		{
 			fpga_dma_init(dma_addr[j],
@@ -372,8 +370,8 @@ int main(int argc, char **argv) {
     }
 
     //Moving data with DMAC (DMAC program preparation is measured)
-    printf("data sizes test = %d\n\r", number_of_data_sizes_test);
-	  printf("Data Size, Average, Min, Max, Variance\n\r");
+    print_screen_file("data sizes test = %d\n", number_of_data_sizes_test);
+	  print_screen_file("Data Size, Average, Min, Max, Variance\n");
     for(i=0; i<number_of_data_sizes_test; i++)//for each data size
 	  {
 		  reset_cumulative( &total_dma, &min_dma, &max_dma, &var_dma);
@@ -385,7 +383,7 @@ int main(int argc, char **argv) {
         data[j] = (char*) malloc(data_size_dmac[number_dmacs_test-1][i]);
         if (data[j] == 0)
         {
-          printf("ERROR when calling malloc: Out of memory \n\r");
+          printf("ERROR when calling malloc: Out of memory \n");
           return 1;
         }
       }
@@ -399,8 +397,6 @@ int main(int argc, char **argv) {
 							((char*)(data[j]))[k] = (char) 3;
           for (k= 0; k<MIN_TRANSFER_SIZE;k++)
 							((char*)(fpga_ocr_addr[j]))[k] = (char) 5;
-          //printbuff(DMA_SRC_UP[j], 32);
-          //printbuff(DMA_DST_UP[j], 32);
 				}
 
 				//Configure DMACs for their respective transfers
@@ -411,10 +407,10 @@ int main(int argc, char **argv) {
 			                           	DMA_DST_DMAC[j],
 			                           	data_size_dmac[number_dmacs_test-1][i]);
           #ifdef PRINT_TRANSFER_DETAILS
-            printf("dma address=%X\n\r",(unsigned int)dma_addr[j]);
-            printf("src address=%X\n\r",(unsigned int)DMA_SRC_DMAC[j]);
-            printf("dst address=%X\n\r",(unsigned int)DMA_DST_DMAC[j]);
-            printf("data_size=%d\n\r",(int)data_size_dmac[number_dmacs_test-1][i]);
+            printf("dma address=%X\n",(unsigned int)dma_addr[j]);
+            printf("src address=%X\n",(unsigned int)DMA_SRC_DMAC[j]);
+            printf("dst address=%X\n",(unsigned int)DMA_DST_DMAC[j]);
+            printf("data_size=%d\n",(int)data_size_dmac[number_dmacs_test-1][i]);
           #endif
         }
 			  //----DO THE TRANSFER----//
@@ -444,10 +440,10 @@ int main(int argc, char **argv) {
         }
         #endif
 				overflow = pmu_counter_read_ns(&pmu_counter_ns);
-				if (overflow == 1){printf("Cycle counter overflow!! Program ended\n\r");
+				if (overflow == 1){printf("Cycle counter overflow!! Program ended\n");
         	return 1;}
 
-        //printf("PMU counter (ns): %lld \n\r", pmu_counter_ns);
+        //printf("PMU counter (ns): %lld \n", pmu_counter_ns);
 
 				if (l>=2) update_cumulative(&total_dma, &min_dma, &max_dma,
 			    &var_dma, 0, pmu_counter_ns, clk_read_average);
@@ -458,17 +454,15 @@ int main(int argc, char **argv) {
 				// Compare results
 				for (j=first_dmac_test; j<=last_dmac_test; j++)
 				{
-          //printbuff(DMA_SRC_UP[j], 32);
-          //printbuff(DMA_DST_UP[j], 32);
 					if(0  != memcmp(DMA_SRC_UP[j], DMA_DST_UP[j], 2))
 					{
-						printf("DMA src and dst have different data!! Program ended\n\r");
+						printf("DMA src and dst have different data!! Program ended\n");
 				    return 1;
 					}
 				}
 
 			}//for rep tests
-			printf("%d, %lld, %lld, %lld, %lld\n\r",
+			print_screen_file("%d, %lld, %lld, %lld, %lld\n",
 	    data_size[i], total_dma/REP_TESTS, min_dma, max_dma,
 	    variance(var_dma, total_dma, REP_TESTS));
 		}//for data_sizes
@@ -481,7 +475,12 @@ int main(int argc, char **argv) {
 
   if (print_screen == 0) fclose (f_print);
 
-	print("\n\rData transfer measurements finished!!!!\n\r");
+  if (print_screen==1) printf("\nData transfer measurements finished!!!!\n");
+  else
+  {
+    printf("\nData transfer measurements finished!!!!\n");
+    print_screen_file("\nData transfer measurements finished!!!!\n");
+  }
 
   return 0;
 

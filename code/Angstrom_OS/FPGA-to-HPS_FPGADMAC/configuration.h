@@ -9,8 +9,8 @@
 #define BRIDGES_128BIT
 
 //Select writing HPS (WR) or reading the HPS (RD)
-//#define WR_HPS
-#define RD_HPS
+#define WR_HPS
+//#define RD_HPS
 
 //Limit the F2H tests to MAX_SIZE_F2H_TESTS
 //#define LIMIT_F2H_TESTS
@@ -84,7 +84,7 @@
 #endif
 
 
-#define REP_TESTS 1 //repetitions of every time measurement
+#define REP_TESTS 100 //repetitions of every time measurement
 #define CLK_REP_TESTS 1000
 
 //Uncomment to generate dummy traffic in CPU memory to pollute cache and
