@@ -111,7 +111,7 @@ int main()
 	//variables to manage the dmacs involved in transaction
 	int number_dmacs_test, first_dmac_test, last_dmac_test;
 
-	//data_size_dmac[x][y] = x is the number of dmacs working, y data size
+	//data_size_dmac[x][y] = x+1 is the number of dmacs working, y data size
 	int data_size_dmac[5][number_of_data_sizes];
 	for (i=0; i<5; i++)
 	{

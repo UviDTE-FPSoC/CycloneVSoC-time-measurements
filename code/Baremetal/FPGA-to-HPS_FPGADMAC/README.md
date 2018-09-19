@@ -1,26 +1,23 @@
-Baremetal/HPS-to-FPGA_PL330DMAC
+Baremetal/FPGA-to-HPS_FPGADMAC
 =================================
 
 Introduction
 -------------
-This baremetal application measures the data transfer rate between HPS and FPGA using the Direct Memory Access Controller (DMAC) PL330 available in HPS to do the transfers and Performance Monitoring Unit (PMU) to measure time.
+This baremetal application measures the data transfer rate between FPGA and HPS using Direct Memory Access Controllers (DMACs) in the FPGA. The DMAC used is the (non scatter-gather) DMAC available in Platform Designer (formely Qsys). One DMAC is connected per available port: one to the FPGA-to-HPS bridge and two (-128-bit) or four (32- and 64-bit) to the FPGA-to-SDRAM ports, depending on the bridge size. The hardware project used is the [FPGA_DMA](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_DMA). To control the DMACs a custom API, located in code/inc/FPGA_DMA, has been developed.
 
-The program controls the DMA using a modified version of DMA functions available in hwlib.
+The program carries out transfers between On-Chip RAM memories in the FPGA (FPGA-OCRs) and HPS memories (cache through ACP, SDRAM trhough L3->SDRAMC port or SDRAM directly through FPGA-to-SDRAM ports) and measures the transfer time using the Performance Monitoring Unit.
 
-The following parameters affecting the transfer speed are studied:
-* Transfer direction: WR (read from processor and WRITE to FPGA) and RD (READ from FPGA and write in processor memory).
-* Transfer size: From 2B to 2MB in 2x steps.
-* Coherency: DMAC accesses HPS memories through ACP (coherent access) when the cache memory is ON and through the L3-to-SDRAMC port when cache is off.
-* DMA initialization time: tests are repeated with or without including the preparation of the DMAC microcode. DMAC microcode can be generated beforehand for lots of applications reducing transfer time.
+When executing the program different combinations of FPGA DMA Controllers transferring data are tested:
+* Only one DMAC connected to the FPGA-to-SDRAM port transfers data.
+* All DMACs connected to the FPGA-to-SDRAM ports (two or four DMACs depending on bridge size) are used to transfer data.
+* Only the DMAC attached to the FPGA-to-HPS port using the ACP port.
+* Only the DMAC attached to the FPGA-to-HPS port using the L3->SDRAM port.
+* All DMACs, the one connected to the FPGA-to-HPS port using the L3-SDRAM port and all DMACs connected to the FPGA-to-SDRAM ports.
 
-Transfers are performed from processor memories (cache/SDRAM) and an On-Chip RAM (OCR) in the FPGA. The FPGA hardware project used is available in [FPGA_OCR_256K](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_OCR_256K).
-The memory in the FPGA has the following characteristics:
-* Implemented using embedded 10kB memory blocks.
-* Size = 256kB, the maximum power of two feasible in DE1-SoC board.
-* Connected by default to position 0 of the HPS-FPGA bridge (starts at 0xC0000000). The memory can be changed easly to hang from the Lightweight HPS-FPGA bridge using Qsys.
-* Data_size is 128-bit by default. When hanging from the HPS-FPGA bridge, the size of the bridge and/or this memory can be changed to 64-bit or 32-bit. When hanging from the Lightweight HPS-FPGA bridge the size should be 32-bit.
+The program automatically tests different data sizes, from data size 2B to 2MB, in 2x steps. When more than one DMAC is
+used the work is equally distributed among the DMACs. To do this the data payload moved by each DMAC is calculated as the target data size (to be moved from FPGA-to-HPS) divided by the number of DMACs. This permits to study if distributing the payload of certain transfer can be speed up using more than one DMAC.
 
-Each transfer is repeated by default 100 times and the following statistics are calculated for each combination of the aforementioned parameters:
+Each transfer is repeated by default 100 times and the following statistics are calculated for ea:
 * mean value
 * minimum value
 * maximum value
@@ -30,63 +27,55 @@ Results are printed in console.
 
 Description of the code
 ------------------------
+#### configuration.h
+This file permits to configure the experiments:
 
-#### configuration.h:
-configuration.h permits to control the default behaviour of the program:
-* Selecting between   ON_CHIP_RAM_ON_LIGHTWEIGHT,  ON_CHIP_RAM_ON_HFBRIDGE32, ON_CHIP_RAM_ON_HFBRIDGE64 and ON_CHIP_RAM_ON_HFB the program is automatically adapted depending on the hardware project used. By default it is supossed that the FPGA OCR is connected to the HPS-to-FPGA (non Lightweight) bridge with 128-bit width. configuration.h obtains hardware information for each bridge and size from [code/inc/FPGA_system_headers](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/FPGA_system_headers).
-* Cache features that are activated can be controlled by the CACHE_CONFIG macro that can be defined as a number between 0 and 13 with the following meanings. Each number adds a feature to the previous state so adding the effect of each feature can be easily studied:
-	* 0 no cache no MMU
-	Basic config and optimizations:
-	* 1 enable MMU
-	* 2 do 1 and initialize L2C
-	* 3 do 2 and enable SCU
-	* 4 do 3 and enable L1_I
-	* 5 do 4 and enable branch prediction
-	* 6 do 5 and enable L1_D
-	* 7 do 6 and enable L1 D side prefetch
-	* 8 do 7 and enable L2C
-	Special L2C-310 controller + Cortex A9 optimizations:
-	* 9 do 8 and enable L2 prefetch hint
-	* 10 do 9 and enable write full line zeros
-	* 11 do 10 and enable speculative linefills of L2 cache
-	* 12 do 11 and enable early BRESP
-	* 13 do 12 and store_buffer_limitation
-* Uncommenting EN_LOCKDOWN_STUDY the lockdown by master study can be activated. Regular measurements are repeated changing lockdown by master settings of the L2 8-way associative cache controller. Regular configuration; configurations locking 1, 4 and 7 ways for CPU; and ways locking 1, 4 and 7 ways for CPU and the rest for ACP are tested. When EN_LOCKDOWN_STUDY is activated, uncommenting LOCK_AFTER_CPU_GENERATES_TRANSFER_DATA the CPU and ACP is locked after the transfer data is generated and located in cache without locking. Otherwise the CPU/ACP are locked before data is generated. This study tries to measure the improvement that can be achieved on DMA transfers using ACP when applying lockdown by master.
-* Uncommenting EN_SDRAMC_STUDY the SDRAM port priority and weight is activated. Regular measurements are repeated changing settings of the mmpriority, mpweight_0_4 and mpweight_1_4 (see Cyclone V SoC Handbook for more information on these registers). The following combinations are performed: default configuration when starting up the syste; give to CPUs port and L3-to-SDRAM controller port same priority (using mmpriority) giving to L3-to-SDRAM controller port 2, 4, 8 and 16 times more bandwidth (using mpweight_0_4 and mpweight_1_4); give to  L3-to-SDRAM controller port more priority than CPUs port so it is always accessed when both ports access simultaneously to data. This study tries to measure the improvement that can be achieved on DMA transfers using L3-to-SDRAM port when giving more bandwidth or priority to it.
-* Uncommenting GENERATE_DUMMY_TRAFFIC_IN_CACHE traffic can be added to chache and main SDRAM memory to affect the DMA transfers and see more clearly the effects of lockdown by master and sdram controller port priority and bandwidth when EN_LOCKDOWN_STUDY or EN_SDRAMC_STUDY are enabled, respectively. To generate the traffic, in the while loop where the application waits for the DMA controller to finish the transfer, reads and writes to/from memory take place in a span of 2MB.
+The following macros must be used to configure the software depending on the size of the data bus of the FPGA-HPS bridges used:
+* BRIDGES_32BIT: uncomment when 32-bit bridges are used.
+* BRIDGES_64BIT: uncomment when 64-bit bridges are used.
+* BRIDGES_128BIT: uncomment when 128-bit bridges are used.
+
+Since the DMAC ports are unidirectional only one direction is tested with one execution of the program. To choose the data direction:
+* WR: read data from FPGA-OCRs and write to processor memories. Uncomment WR_HPS in configuration.h to select WR.
+* RD: read data from processor memories and write to FPGA-OCRs. Uncomment RD_HPS in configuration.h to select RD.
+
+Notice that in this case data in WR and RD operations travels in the opposite direction than the WR and RD operations defined for HPS-to-FPGA experiments.
+
+Not all combinations must always be done. Using the following macros certain combinations can be disabled:
+* TEST_ALL_COMBINATIONS: uncomment to test all combinations.
+* TEST_ONLY_F2S_BRIDGES: uncomment to test only the combinations that do not use the FPGA-to-HPS bridge.
+* TEST_F2H_AND_ALL_BRIDGES: uncomment to test only the combinations that use the FPGA-to-HPS bridge.
+
+The macro CACHE_CONFIG configures the cache level. Its options have been already explained in HPS-to-FPGA baremetal programs.
 
 #### main.c:
 
-First the program generates the address to access FPGA-OCR. The address used is the beginning of the bridge where the FPGA-OCR is connected plus the address of the memory with respect to the beginning of the bridge (address in Qsys). Using this address the FPGA OCR is checked to ensure that the processor has access to all of it. If access is possible the FPGA OCR content is cleared (0s are written).
+First the program prepares some variables to do the experiments. The most important is data_size_dmac, that contains the data transfer of the DMACs depending on the number of DMACs used. data_size_dmac[i][j] is the data transfer when using i+1 DMACs for the data size data_size[j].
 
-After that cache is switched on with the level of optimization specified by the macro CACHE_CONFIG of configuration.h. The function used to switch on the cache, cache_configuration() is in the files cache_high_level_API.h and cache_high_level_API.c in folder [code/inc/Cache/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache). This function calls to the low level functions defined in files arm_cache_modified.h and arm_cache_modified.c in the same folder. This files are a modification to the [Legup files to configure Cyclone V SoC cache](http://legup.eecg.utoronto.ca/wiki/doku.php?id=using_arm_caches). The modification, explained at the beginning of arm_cache_modified.c consists in changing main memory table attributes in MMU to shareable memory so coherent ACP access are permited. After switching on the cache the ACP is configured to allow access to cached memory through ACP by the DMA controller. The ACP ID mapper is configured using acp_configuration() defined in acp_high_level_API.h and acp_high_level_API.c, located in [code/inc/Cache/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache) too. This function sets a AXI ID for accessing L2 cache controller equal to 3 to any master reading the ACP and equal to 4 to any master reading the cache.
+Then the program generates the address of the DMACs and FPGA-OCR memories in the FPGA to have acess to it from the processor. The address used is the beginning of the bridge where the component is connected (HPS-to-FPGA bridge) plus the address of the memory with respect to the beginning of the bridge (address in Qsys). After that the FPGA-OCR memories are checked (to test that all Bytes are accesible) and reset.
 
-Then the PMU is initialized as a timer using functions defined in [code/inc/PMU](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/PMU). PMU is the more precise way to measure time in Cyclone V SoC. Visit this [PMU basic baremetal example](https://github.com/UviDTE-FPSoC/CycloneVSoC-examples/tree/master/Baremetal-applications/Second_counter_PMU) to learn more about it. It is initialized with a base frequency of 800 MHz (the frequency of the CPU configured in the FPGA hardware project) and freq divider = 1 so the measurement is most precise possible (1ns resolution). After initialization empty measuremnts (measuring no code) are done to obtain the PMU measurement overhead. This overhead will be substracted to all measuremnts later on to obtain a more precise measurement.
+After that cache is switched on with the level of optimization specified by the macro CACHE_CONFIG of configuration.h. The function used to switch on the cache, cache_configuration() is in the files cache_high_level_API.h and cache_high_level_API.c in folder [code/inc/Cache/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache). This function calls to the low level functions defined in files arm_cache_modified.h and arm_cache_modified.c in the same folder. This files are a modification to the [Legup files to configure Cyclone V SoC cache](http://legup.eecg.utoronto.ca/wiki/doku.php?id=using_arm_caches). The modification, explained at the beginning of arm_cache_modified.c consists in changing main memory table attributes in MMU to shareable memory so coherent ACP access are permited. After switching on the cache the ACP is configured to allow access to cached memory through ACP by the DMAC. The ACP ID mapper is configured using acp_configuration() defined in acp_high_level_API.h and acp_high_level_API.c, located in [code/inc/Cache/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache) too. This function sets a AXI ID for accessing L2 cache controller equal to 3 to any master reading the ACP and equal to 4 to any master reading the cache. Then the AXI signals in the Avalon to AXI component (needed for the DMAC connected to the FPGA-to-HPS bridge) are set to 0x00870087 (fastest) and the FPGA-to-SDRAM ports are removed from reset so they are usable from FPGA.
 
-To do the measurment the functions in alt_dma_modified.c and alt_dma_modified.h are used. These files are a modification of alt_dma.c and alt_dma.h available in hwlib. The modification consitsts in splitting alt_dma_memory_to_memory(), a function used to move data using DMA. From alt_dma_memory_to_memory() code, alt_dma_memory_to_memory_only_prepare_program() and alt_dma_channel_exec() are created. alt_dma_memory_to_memory_only_prepare_program() only prepares the DMA microcode that DMA cointroller will execute to do the transfer. alt_dma_channel_exec() just executes the microcode in DMA controller and performs the actual transfer. This is very useful because preparing the microcode is between 20% and 80% of the execution time of alt_dma_memory_to_memory(). In most applications the source and destiny buffers, along with the size of the transfer is know, so the microcode can be prepared at the beginning of the program only once, instead of being regenrated every time a transfer is done.
+Then the PMU is initialized as a timer using functions defined in [code/inc/PMU](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/PMU). PMU is the more precise way to measure time in Cyclone V SoC. Visit this [PMU basic baremetal example](https://github.com/UviDTE-FPSoC/CycloneVSoC-examples/tree/master/Baremetal-applications/Second_counter_PMU) to learn more about it. It is initialized with a base frequency of 800 MHz (the frequency of the CPU configured in the FPGA hardware project) and freq divider = 1 so the measurement is most precise possible (1.25ns resolution). After initialization empty measuremnts (start the counter and inmediately read it) are done to obtain the PMU measurement overhead. This overhead will be substracted to all measuremnts later on to obtain a more precise measurement.
 
-Then the measurements start. For each combination of data sizes, 100 measurements on writing the FPGA (WR) and reading the FPGA (RD) are done. In the case the FPGA OCR size (256KB) is smaller than transfer size (2B to 2MB) transfer are repeated until the total desired transfer size is completed (address of main memory keeps growing to see cache effects while address in FPGA is reset). When the 100 measuremnts are done, mean, max, min and variance is calculated using functions in [code/inc/Statistics](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Statistics)/statistics.c and printed in screen. If GENERATE_DUMMY_TRAFFIC_IN_CACHE is defined the processor goes accessing memory doing reads and writes in a span of 2MB to pollute cache and SDRAM controller with traffic while the program whites for the transfer to end.
-To do the transfer the program first uses the original hwlib function alt_dma_memory_to_memory() so microcode preparation time + actual transfer are measured. Later all measurements are repated using alt_dma_memory_to_memory_only_prepare_program() at the beginning to prpare the microcode for DMA controller and alt_dma_channel_exec() to do the transfer. The second method gives fater transfer rates because the preparation time is not measured.
+Later the DMACs are initialized. The transfer word (size of one transaction) is
+set equal to the bridge size to maximize speed. The transfer is considered to be finished when the length of the internal counter of the DMAC reaches zero (all data is sent). Lastly the DMAC is configured to use a constant read address during WR operations or constant write address during RD operations. That means that the DMAC always uses the same address to access the FPGA-OCR from the 1kB available. This allows the program to test big data sizes above 512kB, the maximum size that can be configured in the DE1-SoC. Moreover, having a smaller FPGA-OCR permits to reduce the interconnect and increase the maximum FPGA operating frequency during the experiments. Tests have been done to verify that using constant adresseses for the FPGA-OCRs does not affect the transfer data rate, so the experiments carried out in this way are equivalent to ones carried out with a non constant address (normal way to proceed).
 
-If EN_LOCKDOWN_STUDY is defined measurements are repeated for all combinations of lockdown by master programmed. Lockdown is controlled by function L2_lockdown_by_master() defined in [code/inc/Cache/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Cache)cache_high_level_API.c.
-If EN_SDRAMC_STUDY is defined measurements are repeated for all combination of port priority and bandwidth programmed. Controlled by function print_sdramc_priorities_weights()defined in [code/inc/SDRAMC/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/SDRAMC)sdram.c.
+Now measurements start. The different combinations of DMACs are prepared and defined using a for loop and switch case. They define the DMACs that will be used and the data size of the experiments for every combination loop. Then the destiny address is cleared and the source filled with a constant. After that the transfer is configured from source to destiny. The PMU counter is reset and the transfer/s is/are started for the DMAC/s active in the current combination. When all DMACs finish the value of the PMU counter is read and this is taken as transfer time. Each transfer is repeated by default 100 times and the following statistics are calculated for each data size and combination of DMACs:
+* mean value
+* minimum value
+* maximum value
+* variance
 
-The file [code/inc/Baremetal_io/](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/inc/Baremetal_IO)io.c gives support to printf function.
-
-
+Results are printed in console.
 
 Contents in the folder
 ----------------------
 
 * configuration.h
 * main.c
-* alt_dma_modified.c  and alt_dma_modified.h describe the DMAC control functions. The original alt_dma.c from hwlib was modified. The changes are:
-    * ALT_DMA_CCR_OPT_SC_DEFAULT was changed by ALT_DMA_RC_ON = 0x00003800 in alt_dma.c. ALT_DMA_CCR_OPT_DC_DEFAULT was changed by ALT_DMA_WC_ON =  0x0E000000. These changes make the channel 0 of the DMAC to do cacheable access with its AXI master port.
-    * Other change is the split of alt_dma_memory_to_memory() into 2 functions: alt_dma_memory_to_memory_only_prepare_program() and alt_dma_channel_exec(), as explained above.
-* alt_dma_program.c, alt_dma_program.h, alt_address_space.c and alt_address_space.h and alt_types.h. Copied exactly from the hwlib. They were copied to be able to compile in old (lover than v.15) and newer (v.15 and higher) SoC EDS hwlib folder structure, because the .h in the new style ask for the #define soc_cv_av.
-
+* alt_address_space.c and alt_address_space.h. These functions are copied without modifications from hwlib. They contain the functions to configure the ACP.
 * cycloneV-dk-ram-modified.ld: describes the memory regions (stack, heap, etc.).
-
 * Makefile: describes compilation process.
 
 Compilation
@@ -94,7 +83,7 @@ Compilation
 Open SoC EDS Command Shell, navigate to the folder of the example and type **make**.
 The provided makefile is prepared to automatically detect and adapt to both the old hwlib folder structure (before *Intel FPGA SoC EDS v15*) and the new (*Intel FPGA SoC EDS v15* and ahead) so the included files are found.
 
-This compilation process was tested with both *Altera SoC EDS v14.1* and *Intel FPGA SoC EDS v16.1*.
+This compilation process was tested in *Intel FPGA SoC EDS v16.1*.
 
 The compilation process generates two files:
 * baremetalapp.bin: to load the baremetal program from u-boot
@@ -104,3 +93,4 @@ How to test
 -----------
 In the following folder there is an example on how to run baremetal examples available in this repository:
 [https://github.com/UviDTE-FPSoC/CycloneVSoC-examples/tree/master/SD-baremetal](https://github.com/UviDTE-FPSoC/CycloneVSoC-examples/tree/master/SD-baremetal).
+Remember to load in the SD card the .rbf file of the FPGA project equivalent with the selections in configuration.h.
