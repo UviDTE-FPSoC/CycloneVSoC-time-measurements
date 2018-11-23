@@ -21,6 +21,8 @@ Table of contents of this README file:
 4. [HPS-to-FPGA - Main Experiments](#4---hps-to-fpga---main-experiments)
 5. [HPS-to-FPGA - L2 Lockdown by Master Experiments](#5---hps-to-fpga---l2-lockdown-by-master-experiments)
 6. [HPS-to-FPGA - SDRAM Controller Experiments](#6---hps-to-fpga---sdram-controller-experiments)
+7. [FPGA-to-HPS - Main Experiments](#7---fpga-to-hps---main-experiments)
+
 
 
 1 - Repository contents
@@ -363,3 +365,116 @@ All the numeric data set for this experiments is in [/results](https://github.co
 </p>
 
 As can be seen in the plots, in Angstrom implementations these features do not result in improved transfer rate in any of the cases, likely because a large portion of the transfer is performed by the CPU, which copies data from a buffer in user space to another in kernel space. In baremetal implementations, results show that these features don´t provide a clear advantagebelow data size 8kB. Above this size, transfer rates improve only for WR transactions, up to 8% when L3 is allocated 16 times more bandwidth than CPU port and 10% when the priority of L3 is higher than that of CPU port.
+
+7 - FPGA-to-HPS - Main Experiments
+----------------------------------
+### Introduction
+This group of experiments transfers data between FPGA and HPS using the FPGA as master. Along with the previous experiments that use HPS as master, these measurements complete all the possible ways to move information between HPS and FPGA. In this case, DMA controllers implemented in the FPGA are used to read data from HPS, referred as RD operation, or write data stored in the FPGA into the HPS memories, referred as WR operation. Note that in experiments  with the FPGA as master WR and RD operations move data in the oposite direction that in the experiments where HPS is the master. The hardware project used for the experiments is located [fpga-hardware/DE1-SoC/FPGA_DMA](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/fpga-hardware/DE1-SoC/FPGA_DMA)
+
+### Explanation of the Experiments
+Transfer rates between HPS and FPGA when HPS is the master are measured for different combinations of values of the following parameters:
+
+* OS or baremetal implementation:
+	* Angstrom, the default Linux-based OS for Intel FPGA devices and well documented in their [support website](https://rocketboards.org/foswiki/Documentation/AngstromOnSoCFPGA_1#Angstrom_v2013.12) has been used. It is a light OS, well suited for industrial applications. The program used for OS experiments can be found in [code/Baremetal/FPGA-to-HPS_FPGADMAC](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Angstrom_OS/FPGA-to-HPS_FPGADMAC).
+	* Baremetal application running in one of the ARM cores. The program used for OS experiments can be found in [code/Baremetal/FPGA-to-HPS_FPGADMAC](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/code/Baremetal/FPGA-to-HPS_FPGADMAC).
+
+* Bridge. All bridges having FPGA as master have been tested: FPGA-to-HPS bridge and FPGA-to-SDRAM ports, configured as 32-, 64- and 128-bit. To shorten, they will be referred as FH32, FH64, FH128, FS32, FS64 and FS128. As explained in Section \label{FPGA-HPS-hardware} three hardware projects are generated configuring the bridges with the same size (32-, 64-, or 128-bit): 1 DMAC in FH32 and 4 DMACs in FS32, 1 DMAC in FH64 and 4 DMACs in FS64 and 1 DMAC in FH128 and 2 DMACs in FS128. They permit to perform tests using only one DMAC or several DMACs at once.
+
+* FPGA DMA Controllers transferring data:
+  * Only the DMAC connected to the FPGA-HPS.
+  * Only one of the DMACs connected FPGA-to-SDRAMC ports.
+  * All the DMACs connected to the FPGA-to-SDRAMC ports. That means two DMACs when using 128-bit ports and four DMACs when using 32- and 64-bit ports.
+  * All DMACs, that is, the DMAC connected to the FPGA-to-HPS bridge and
+  all the DMACs connected to the FPGA-to-SDRAMC ports.
+
+* Data direction:
+  * WR: read data from FPGA-OCRs and write to processor memories.
+  * RD: read data from processor memories and write to FPGA-OCRs.
+
+* Cache enablement. Cache is always ON.
+
+* Coherency (only applies for FPGA-to-HPS bridge): the DMAC connected to FPGA-to-HPS bridge can access processor memories through ACP (coherent access) or through the Main-Switch to SDRAMC port (non-coherent access). When it works alone, both scenarios, coherent and non-coherent, are tested. When it works together with all the DMACs connected to FPGA-SDRAMC ports only non-coherent access is performed.
+
+* Data size from 2B to 2MB, in 2x steps. When more than one DMAC is used the work is equally distributed among the DMACs. To do this the data payload moved by each DMAC is calculated as the target data size (to be moved from FPGA-to-HPS) divided by the number of DMACs.
+
+* FPGA frequency. In baremetal FPGA frequencies tested spam from 50 to 200MHz, in 50MHz steps. In Angstrom OS, only 150MHz and 200MHz were tested.
+
+Tests are repeated 100 times (automatically done by the application) and mean value is given as result.
+
+### General Analysis of the Results
+The full set of numeric values for the main experiments is in [results](https://github.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/tree/master/results)/CycloneVSoC_FPGA-to-HPS_main_time_measurements.xlsx.
+
+The results obtained show that fastest data transfers are always achieved using the 128-bit bridges at higher frequencies, as expected.  However big differences are shown depending on the bridge type and number of them used. The following figure shows transfer data rates for different
+combinations of bridges for the fastest experiments with 128-bit bridges the FPGA running at 150MHz. As explained in Section later no experiment ran at 200MHz and most did at 150MHz so it is selected as maximum frequency.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-main.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+The shapes of all plots are similar to those of the HPS to FPGA experiments. The transfer rates grows fast at small data sizes because initialization effects and because at small data sizes, smaller or equal to the bridge size, a single transaction is carried out. In this cases, since the total time of the transaction is the same for them, bigger data sizes obtain less time per byte and therefore higher transfer rates. At intermediate data sizes these effects become  negligible with respect the actual transfer and the transfer rate stabilizes. At 132kB transfer rate drops for WR operations while it maintains in the case of reads. This effect is appreciable in all methods, including those which directly access SDRAMC and those accessing through ACP. This
+effect is due to saturation of the SDRAMC internal buffers and prefetching mechanisms that permit higher rates when less transfer petitions reach to its ports. In the case of ACP the access is done to cache. However the cache is accessing SDRAMC to write data producing the same effect as
+the F2S ports.
+
+When comparing the bridge's type and size it can be observed that a FS port is much faster than the FH bridge in all cases and should be always be the preferred option. Another interesting result is that at 150MHz, using 2 FS bridges do not show any advantage with respect to using one. This is not the case at slower FPGA frequencies where using several FS briges can produce higher transfer rates than a sigle FS bridge and compensate the frequency drop, as explained later.
+
+The maximum theoretical speed for a 128-bit bus at 150MHz is 2400MB/s. In this case, all FPGA to HPS transfers are under 1500MB/s. This value is higher than the 1200MB/s obtained for the HPS to FPGA experiments.
+
+
+### Bridge Size Analysis
+
+When comparing just the size of the bridges there is huge difference when 128-bit is used with repect to 32-and 64-bit bridges. 128-bit bridges of any type are always faster than 32- and 64-bit bridges and should be used to maximize data transfer rate. The following table shows a comparison of bridge size that contains the division of the mean transfer rates for all data sizes in 32-and 64-bit bridges divided by that of 128-bit ones.
+
+Performance of 64-bit bridges (FH64 and FS64) and 32-bit bridges (FH32 and FS32) vs that of the 128-bit bridges (FH128 and FS128) in Cyclone V SoC.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges-table.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+A constant reduction is observed for each bridge size. 64-bit bridges have around a 50-60% of the transfer rate of the same bridge configured as 128-bit. 32-bit bridges normally have a 30-40%
+of the 128-bit bridge speed. An exception occurs when all FS bridges plus FH bridge are used. In this case data paylod is equally distributed among 4 FS bridges and one FH bridge when 32- and 64-bit bridges are used and among only 2 FS bridges plus one FH in 128-bit bridges. 32-bit and 64-bit have more bridges with less transfer size each. Moreover the FH bridge slows down all the experiments because although FS bridges finish soon the transfer does not end until FH finishes. For this reason smaller reduction is obtained when all bridges are used and for 64-bit WR
+the transfer rate is even higher that for 128-bit bridges.
+
+To better visualize the effect of bridge size the following figure shows transfer rate for 32-, 64-, and 128-bit bridges when using a single FS bridge (the fastest case). For the rest of cases the effect is similar, as expresed by the previous table.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+When implementing the FPGA to HPS interconnect in some application it is rare that the data stream to be saved in HPS memories is exactly 128-bit width. In this case data can be always packed in order to write words of 128-bit. Even when the speed of 32- or 64-bit is enough to accomodate the transfers of that specific application it is encouraged to use 128-bit bridge so the Main Switch and the SDRAMC (depending on bridge used) have to manage less number of individual transfers, freeing bandwidth for other components using these shared resources, like processor or HPS peripherals. Low sized bridges are only justifiable when the design does not fit in the FPGA or when the maximum FPGA frequency is below the desired one for the application.
+
+On the other hand, when having more than one stream it is usually better to use a bridge for each one. Otherwise, packing words of different streams into 128-bit word to use a single bridge will write the information of each stream criss-crossed in memory and the processor will have to do a hard (and slow) work to grab each word of each stream from among the other stream's bytes and join them in other part of memory to make it usable.
+
+### FPGA Frequency Analysis
+
+The following table shows the maximum frequency achieved during the experiments. No experiment runs at 200MHz. Most of experiments run at maximum of 150MHz but some of them could only do it up to some data size. The maximum data size in kB is marked in parenthesis in the table, next to the maximum frequency. Finally, few experiments could only run at 100MHz.
+
+Maximum frequency achieved in the FPGA to HPS experiments in Cyclone V SoC. The number in parenthesis is the maximum data size in kB that experiment correctly runs.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-table.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+The effect of FPGA frequency in transfer rate is summarized for 128-bit bridges in the following Table.
+
+Transfer rate reduction (%) in FPGA-to-HPS 128-bit bridges when lowering the FPGA operating frequency in Cyclone V SoC.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-reduction.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+### OS vs Baremetal Implementations
+The effect of the OS in the data transfer can be analyzed comparing experiments for Angstrom OS and Baremetal in the figure of General Analysis section. As observed the double copy produced in the driver used in the experiments with OS degrades the speed of the transfers about a 50. The effect is much more noticiable in WR operations.
+
+### Number of Bridges Analysis
+Some of the experiments were carried out using more than one bridge at the same time in order to find out if it is possible to speed up the transfer of a single stream in this way. To do that data payload is distributed equally among the number of bridges used and each DMAC moves a smaller
+fraction of data.
+
+When using all available FS bridges at 150MHz, the results show no improvement (nor downgrade) with respect using one. This can be observed in figure of the General Analysis of Results for the 128-bit case. However, at smaller frequencies, faster transfer rates are achieved when using two FS bridges, reaching speeds similar to those of 150MHz. This can be observed in the following figure.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-128-1xF2S.png" width="800" align="middle" alt="Main-results" />
+</p>
+
+Therefore this technique can be used to compensate a reduction in the maximum transfer rate in case the FPGA frequency must be set lower than 150MHz. For 64- and 32-bit briges, conclusions are the same when comparing one FS with all available FS bridges, four in this case.
+
+Tests were also conducted transferring data with all bridges available from FPGA to HPS, that is, one FH bridge and two FS (128-bit) or one FH bridge and four FS (32- and 64-bit). In this case, splitting a stream is not beneficial because the FH bridge is much slower that FS bridge. Therefore, although DMACs connected to FS bridges finish fast, the CPU has to wait for the FH bridge to finish, giving speeds better than using only the FH bridge but several times slower than using a single FS or all FS. In example, for 128-bit bridges at 100MHz the mean transfer rate achieved is 68MB/s for HF, 502MB/s when using two FS and 135MB/s when using FH and two FS at the same time. Therefore it is recommended not to use HF and FS bridges combined to speed up a single strem. They can be used for different streams though, sending the stream with lower data payloads through HF bridge and the rest through FS ones.
