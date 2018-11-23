@@ -427,7 +427,7 @@ When comparing just the size of the bridges there is huge difference when 128-bi
 Performance of 64-bit bridges (FH64 and FS64) and 32-bit bridges (FH32 and FS32) vs that of the 128-bit bridges (FH128 and FS128) in Cyclone V SoC.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges-table.png" width="800" align="middle" alt="Main-results" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges-table.png" width="550" align="middle" alt="Main-results" />
 </p>
 
 A constant reduction is observed for each bridge size. 64-bit bridges have around a 50-60% of the transfer rate of the same bridge configured as 128-bit. 32-bit bridges normally have a 30-40%
@@ -437,7 +437,7 @@ the transfer rate is even higher that for 128-bit bridges.
 To better visualize the effect of bridge size the following figure shows transfer rate for 32-, 64-, and 128-bit bridges when using a single FS bridge (the fastest case). For the rest of cases the effect is similar, as expresed by the previous table.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges.png" width="800" align="middle" alt="Main-results" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-bridges.png" width="600" align="middle" alt="Main-results" />
 </p>
 
 When implementing the FPGA to HPS interconnect in some application it is rare that the data stream to be saved in HPS memories is exactly 128-bit width. In this case data can be always packed in order to write words of 128-bit. Even when the speed of 32- or 64-bit is enough to accomodate the transfers of that specific application it is encouraged to use 128-bit bridge so the Main Switch and the SDRAMC (depending on bridge used) have to manage less number of individual transfers, freeing bandwidth for other components using these shared resources, like processor or HPS peripherals. Low sized bridges are only justifiable when the design does not fit in the FPGA or when the maximum FPGA frequency is below the desired one for the application.
@@ -451,7 +451,7 @@ The following table shows the maximum frequency achieved during the experiments.
 Maximum frequency achieved in the FPGA to HPS experiments in Cyclone V SoC. The number in parenthesis is the maximum data size in kB that experiment correctly runs.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-table.png" width="800" align="middle" alt="Main-results" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-table.png" width="700" align="middle" alt="Main-results" />
 </p>
 
 The effect of FPGA frequency in transfer rate is summarized for 128-bit bridges in the following Table.
@@ -459,7 +459,7 @@ The effect of FPGA frequency in transfer rate is summarized for 128-bit bridges 
 Transfer rate reduction (%) in FPGA-to-HPS 128-bit bridges when lowering the FPGA operating frequency in Cyclone V SoC.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-reduction.png" width="800" align="middle" alt="Main-results" />
+  <img src="https://raw.githubusercontent.com/UviDTE-FPSoC/CycloneVSoC-time-measurements/master/figures/FPGA-HPS-freq-reduction.png" width="550" align="middle" alt="Main-results" />
 </p>
 
 ### OS vs Baremetal Implementations
